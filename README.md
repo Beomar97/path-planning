@@ -1,1 +1,1 @@
-# ROS_Trajecory_Planning
+# ROS_Path_Planning

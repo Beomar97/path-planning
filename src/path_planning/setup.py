@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'my_package'
+package_name = 'path_planning'
 
 setup(
     name=package_name,
@@ -13,16 +13,16 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='parallels',
-    maintainer_email='parallels@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Marco Forster',
+    maintainer_email='forstma1@students.zhaw.ch',
+    description='Path Planning package for FSZHAW autonomous system',
+    license='Apache License 2.0',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'my_node = my_package.my_node:main',
-            'listener = my_package.path_planner:main',
-            'talker = my_package.input_publisher:main',
+            'testing = path_planning.testing:main',
+            'path_planner = path_planning.path_planner:main',
+            'input_publisher = path_planning.input_publisher:main',
         ],
     },
 )

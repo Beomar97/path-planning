@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>my_package</name>
+  <name>path_planning</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="parallels@todo.todo">parallels</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Path Planning package for FSZHAW autonomous system</description>
+  <maintainer email="forstma1@students.zhaw.ch">Marco Forster</maintainer>
+  <license>Apache License 2.0</license>
 
   <exec_depend>interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>

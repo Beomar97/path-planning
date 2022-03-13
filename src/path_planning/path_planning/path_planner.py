@@ -1,60 +1,66 @@
 import rclpy
 from rclpy.node import Node
-from interfaces.msg import Input
-
-import numpy as np
 import matplotlib.pyplot as plt
+from interfaces.msg import Cone
+from path_planning.model.tag import Tag
+from path_planning.algorithm.densify import Densify
+from path_planning.algorithm.interpolate import Interpolate
 
 class PathPlanner(Node):
 
+    msg_type = Cone
+    topic = 'map'
+    queue_size = 10
+
+    threshold = 3
+    cone_num = 3
+
     def __init__(self):
         super().__init__('path_planner')
+
+        self.blue_cones = []
+        self.yellow_cones = []
+        self.orange_cones = []
+        self.big_orange_cones = []
+
         self.subscription = self.create_subscription(
-            Input, # CHANGE for custom interface
-            'input',
+            PathPlanner.msg_type,
+            PathPlanner.topic,
             self.listener_callback,
-            10)
+            PathPlanner.queue_size)
         self.subscription  # prevent unused variable warning
 
-    def listener_callback(self, input):
-        blue_cones = []
-        for i in range(len(input.blue_cones_x)):
-            blue_cones.append([input.blue_cones_x[i], input.blue_cones_y[i]])
+    def listener_callback(self, cone):
+        if cone.tag == Tag.BLUE.value:
+            self.blue_cones.append([cone.x, cone.y])
+        elif cone.tag == Tag.YELLOW.value:
+            self.yellow_cones.append([cone.x, cone.y])
+        elif cone.tag == Tag.ORANGE.value:
+            self.orange_cones.append([cone.x, cone.y])
+        else:
+            self.big_orange_cones.append([cone.x, cone.y])
 
-        yellow_cones = []
-        for i in range(len(input.yellow_cones_x)):
-            yellow_cones.append([input.yellow_cones_x[i], input.yellow_cones_y[i]])
+        plt.ion()
 
-        self.calculatePath(np.array(blue_cones), np.array(yellow_cones))
+        if len(self.blue_cones) >= PathPlanner.threshold and len(self.yellow_cones) >= PathPlanner.threshold:
+            path_x, path_y = Densify.calculate_path(self.blue_cones[-PathPlanner.cone_num:], self.yellow_cones[-PathPlanner.cone_num:])
+            plt.plot(path_x, path_y, 'o', c='green')
 
-    def calculatePath(self, blue_cones, yellow_cones):
+        if self.blue_cones:
+            blue_cones_x, blue_cones_y = zip(*self.blue_cones)
+            plt.plot(blue_cones_x, blue_cones_y, 'o', c='blue')
+        if self.yellow_cones:
+            yellow_cones_x, yellow_cones_y = zip(*self.yellow_cones)
+            plt.plot(yellow_cones_x, yellow_cones_y, 'o', c='yellow')
+        if self.orange_cones:
+            orange_cones_x, orange_cones_y = zip(*self.orange_cones)
+            plt.plot(orange_cones_x, orange_cones_y, 'o', c='orange')
+        if self.big_orange_cones:
+            big_orange_cones_x, big_orange_cones_y = zip(*self.big_orange_cones)
+            plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
 
-        # Find the range of x values in the arrays
-        blue_cones_min_x, blue_cones_max_x = min(blue_cones[:,0]), max(blue_cones[:,0])
-        yellow_cones_min_x, yellow_cones_max_x = min(yellow_cones[:,0]), max(yellow_cones[:,0])
-
-        # Create an evenly spaced array (100) that ranges from the minimum to the maximum => will be used as the new x values
-        blue_cones_new_x = np.linspace(blue_cones_min_x, blue_cones_max_x, 100)
-        yellow_cones_new_x = np.linspace(yellow_cones_min_x, yellow_cones_max_x, 100)
-
-        # "densifying" both arrays to the same number of points
-        blue_cones_new_y = np.interp(blue_cones_new_x, blue_cones[:,0], blue_cones[:,1])
-        yellow_cones_new_y = np.interp(yellow_cones_new_x, yellow_cones[:,0], yellow_cones[:,1])
-
-        # find average x and average y value for each of our estimate arrays
-        # receive midpoints between our 2 estimate arrays
-        path_x = [np.mean([blue_cones_new_x[i], yellow_cones_new_x[i]]) for i in range(100)]
-        path_y = [np.mean([blue_cones_new_y[i], yellow_cones_new_y[i]]) for i in range(100)]
-
-        # original points
-        cones = np.concatenate((blue_cones, yellow_cones))
-        cones_x, cones_y = zip(*cones)
-
-        plt.plot(blue_cones_new_x, blue_cones_new_y,c='blue')
-        plt.plot(yellow_cones_new_x, yellow_cones_new_y,c='yellow')
-        plt.plot(path_x, path_y, 'o', c='green')
-        plt.plot(cones_x, cones_y, 'ko')
         plt.show()
+        plt.pause(0.0001)
 
 
 def main(args=None):

@@ -1,11 +1,17 @@
 from setuptools import setup
 
 package_name = 'path_planning'
+submodule_model = '/model'
+submodule_algorithm = '/algorithm'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=[
+        package_name, 
+        package_name + submodule_model, 
+        package_name + submodule_algorithm
+    ],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -21,8 +27,9 @@ setup(
     entry_points={
         'console_scripts': [
             'testing = path_planning.testing:main',
+            'track_plotter = path_planning.track_plotter:main',
             'path_planner = path_planning.path_planner:main',
-            'input_publisher = path_planning.input_publisher:main',
+            'cone_publisher = path_planning.cone_publisher:main',
         ],
     },
 )

@@ -1,3 +1,6 @@
+
+# Source code: https://stackoverflow.com/questions/49037902/how-to-interpolate-a-line-between-two-other-lines-in-python
+
 import numpy as np
 
 class Interpolate:

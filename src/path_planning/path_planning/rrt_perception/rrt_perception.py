@@ -1,12 +1,13 @@
 import rclpy
 from rclpy.node import Node
-import matplotlib.pyplot as plt
-from interfaces.msg import Coordinate
 from path_planning.model.tag import Tag
-from path_planning.algorithm.densify import Densify
-from path_planning.algorithm.interpolate import Interpolate
+from interfaces.msg import Coordinate
+from interfaces.msg import Input
 
-class PathPlanner(Node):
+import numpy as np
+import matplotlib.pyplot as plt
+
+class RRTPerception(Node):
 
     msg_type = Coordinate
     topic = 'map'
@@ -16,7 +17,7 @@ class PathPlanner(Node):
     cone_num = 3
 
     def __init__(self):
-        super().__init__('path_planner')
+        super().__init__('rrt_perception')
 
         self.blue_cones = []
         self.yellow_cones = []
@@ -24,24 +25,26 @@ class PathPlanner(Node):
         self.big_orange_cones = []
 
         self.subscription = self.create_subscription(
-            PathPlanner.msg_type,
-            PathPlanner.topic,
+            RRTPerception.msg_type,
+            RRTPerception.topic,
             self.listener_callback,
-            PathPlanner.queue_size)
+            RRTPerception.queue_size)
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, cone):
         if cone.tag == Tag.BLUE.value:
             self.blue_cones.append([cone.x, cone.y])
+            plt.plot(cone.x, cone.y, 'o', c='blue')
         elif cone.tag == Tag.YELLOW.value:
             self.yellow_cones.append([cone.x, cone.y])
+            plt.plot(cone.x, cone.y, 'o', c='yellow')
         elif cone.tag == Tag.ORANGE.value:
             self.orange_cones.append([cone.x, cone.y])
         else:
             self.big_orange_cones.append([cone.x, cone.y])
 
         plt.ion()
-
+        """
         if len(self.blue_cones) >= PathPlanner.threshold and len(self.yellow_cones) >= PathPlanner.threshold:
             path_x, path_y = Densify.calculate_path(self.blue_cones[-PathPlanner.cone_num:], self.yellow_cones[-PathPlanner.cone_num:])
             plt.plot(path_x, path_y, 'o', c='green')
@@ -58,6 +61,7 @@ class PathPlanner(Node):
         if self.big_orange_cones:
             big_orange_cones_x, big_orange_cones_y = zip(*self.big_orange_cones)
             plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
+        """
 
         plt.show()
         plt.pause(0.0001)
@@ -66,14 +70,14 @@ class PathPlanner(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    path_planner = PathPlanner()
+    rrt_perception = RRTPerception()
 
-    rclpy.spin(path_planner)
+    rclpy.spin(rrt_perception)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    path_planner.destroy_node()
+    rrt_perception.destroy_node()
     rclpy.shutdown()
 
 

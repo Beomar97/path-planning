@@ -2,12 +2,12 @@ import csv
 import os
 import rclpy
 from rclpy.node import Node
-from interfaces.msg import Cone
+from interfaces.msg import Coordinate
 from path_planning.model.tag import Tag
 
 class ConePublisher(Node):
 
-    msg_type = Cone
+    msg_type = Coordinate
     topic = 'map'
     queue_size = 10
 
@@ -43,7 +43,7 @@ class ConePublisher(Node):
     def timer_callback(self):
         if self.i < len(self.blue_cones) + len(self.yellow_cones):
 
-            cone = Cone()
+            cone = Coordinate()
             if self.i % 2 == 0:
                 if self.b_i >= len(self.blue_cones):
                     cone = self.publish_yellow()
@@ -64,7 +64,7 @@ class ConePublisher(Node):
             self.i += 1
 
     def publish_yellow(self):
-        cone = Cone()
+        cone = Coordinate()
         cone.tag = self.yellow_cones[self.y_i][0]
         cone.x = self.yellow_cones[self.y_i][1]
         cone.y = self.yellow_cones[self.y_i][2]
@@ -72,7 +72,7 @@ class ConePublisher(Node):
         return cone
 
     def publish_blue(self):
-        cone = Cone()
+        cone = Coordinate()
         cone.tag = self.blue_cones[self.b_i][0]
         cone.x = self.blue_cones[self.b_i][1]
         cone.y = self.blue_cones[self.b_i][2]

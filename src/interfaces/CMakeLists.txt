@@ -36,7 +36,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 set(msg_files
   "msg/Input.msg"
-  "msg/Cone.msg"
+  "msg/Coordinate.msg"
 )
 
 rosidl_generate_interfaces(${PROJECT_NAME}

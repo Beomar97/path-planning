@@ -11,6 +11,7 @@ def main():
     yellow_cones = []
     orange_cones = []
     big_orange_cones = []
+    car_start = []
 
     with open(os.getcwd() + '/src/path_planning/resource/maps/original/' + sys.argv[1]) as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=',')
@@ -24,6 +25,8 @@ def main():
                 orange_cones.append([float(row['x']), float(row['y'])])
             elif row['tag'] == Tag.BIG_ORANGE.value:
                 big_orange_cones.append([float(row['x']), float(row['y'])])
+            elif row['tag'] == Tag.CAR_START.value:
+                car_start = [float(row['x']), float(row['y'])]
 
     # Plot
     if blue_cones:
@@ -41,6 +44,9 @@ def main():
     if big_orange_cones:
         big_orange_cones_x, big_orange_cones_y = zip(*big_orange_cones)
         plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
+    
+    if car_start:
+        plt.plot(car_start[0], car_start[1], 'o', c='black')
 
     plt.show()
 

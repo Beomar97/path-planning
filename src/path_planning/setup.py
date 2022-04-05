@@ -1,23 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 package_name = 'path_planning'
-submodule_testing = '/_testing'
-submodule_model = '/model'
-submodule_algorithm = '/algorithm'
-submodule_rrt = '/rrt_perception'
-submodule_transform = '/transform'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[
-        package_name,
-        package_name + submodule_testing,
-        package_name + submodule_model, 
-        package_name + submodule_algorithm,
-        package_name + submodule_rrt,
-        package_name + submodule_transform
-    ],
+    packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

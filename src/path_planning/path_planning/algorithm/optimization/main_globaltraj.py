@@ -155,7 +155,7 @@ def optimize():
     # assemble export paths
     file_paths["mintime_export"] = os.path.join(file_paths["module"], "outputs", "mintime")
     file_paths["traj_race_export"] = os.path.join(file_paths["module"], "outputs", "traj_race_cl.csv")
-    file_paths["traj_ltpl_export"] = os.path.join(file_paths["module"], "outputs", "traj_ltpl_cl.csv")
+    # file_paths["traj_ltpl_export"] = os.path.join(file_paths["module"], "outputs", "traj_ltpl_cl.csv")
     file_paths["lap_time_mat_export"] = os.path.join(file_paths["module"], "outputs", lap_time_mat_opts["file"])
 
     # ----------------------------------------------------------------------------------------------------------------------

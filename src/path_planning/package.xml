@@ -10,11 +10,17 @@
   <exec_depend>interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>casadi-pip</exec_depend>
+  <exec_depend>python3-sklearn</exec_depend>
+  <!-- pip3 install trajectory_planning_helpers==0.76 -->
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
+  <test_depend>python3-matplotlib</test_depend>
+  <test_depend>python3-matplotlib</test_depend>
 
   <export>
     <build_type>ament_python</build_type>

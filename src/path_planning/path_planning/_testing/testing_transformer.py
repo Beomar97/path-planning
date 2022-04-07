@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from path_planning._testing.test_data import TestData
 from path_planning.transform.optimization_input_transformer import OptimizationInputTransformer
+from path_planning.algorithm.optimization import main_globaltraj
 
 
 def main():

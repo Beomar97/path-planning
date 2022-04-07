@@ -278,4 +278,5 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,ros2,python
 
-resource/outputs/*
+# Outputs folder
+src/path_planning/resource/outputs/*

@@ -26,6 +26,7 @@ setup(
             'cone_publisher = path_planning.cone_publisher:main',
             'coordinate_publisher = path_planning.rrt_perception.coordinate_publisher:main',
             'rrt_perception = path_planning.rrt_perception.rrt_perception:main',
+            'main_globaltraj = path_planning.algorithm.optimization.main_globaltraj:optimize'
         ],
     },
 )

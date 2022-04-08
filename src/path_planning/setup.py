@@ -1,19 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 package_name = 'path_planning'
-submodule_model = '/model'
-submodule_algorithm = '/algorithm'
-submodule_rrt = '/rrt_perception'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[
-        package_name, 
-        package_name + submodule_model, 
-        package_name + submodule_algorithm,
-        package_name + submodule_rrt
-    ],
+    packages=find_packages(),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -28,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'testing = path_planning.testing:main',
+            'testing = path_planning._testing.testing_transformer:main',
             'track_plotter = path_planning.track_plotter:main',
             'path_planner = path_planning.path_planner:main',
             'cone_publisher = path_planning.cone_publisher:main',

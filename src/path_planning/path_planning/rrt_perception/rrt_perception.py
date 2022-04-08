@@ -1,8 +1,16 @@
+import time
+
+from sympy import false, true
+
 import rclpy
 from rclpy.node import Node
 from path_planning.model.tag import Tag
 from interfaces.msg import Coordinate
-from interfaces.msg import Input
+
+from .edge import Edge
+from .delauney_method import Delauney_Method
+from .delauney_method_imp import Delauney_Method_Imp
+from .middle_point_method import Middle_Point_Method
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -23,6 +31,16 @@ class RRTPerception(Node):
         self.yellow_cones = []
         self.orange_cones = []
         self.big_orange_cones = []
+        self.car_start = []
+        self.x_min = 0
+        self.x_max = 0
+        self.y_min = 0
+        self.y_max = 0
+
+        self.del_method = Delauney_Method()
+        self.middle_point_method = Middle_Point_Method()
+        self.delauney_method_imp = Delauney_Method_Imp()
+
 
         self.subscription = self.create_subscription(
             RRTPerception.msg_type,
@@ -31,37 +49,37 @@ class RRTPerception(Node):
             RRTPerception.queue_size)
         self.subscription  # prevent unused variable warning
 
-    def listener_callback(self, cone):
-        if cone.tag == Tag.BLUE.value:
-            self.blue_cones.append([cone.x, cone.y])
-            plt.plot(cone.x, cone.y, 'o', c='blue')
-        elif cone.tag == Tag.YELLOW.value:
-            self.yellow_cones.append([cone.x, cone.y])
-            plt.plot(cone.x, cone.y, 'o', c='yellow')
-        elif cone.tag == Tag.ORANGE.value:
-            self.orange_cones.append([cone.x, cone.y])
-        else:
-            self.big_orange_cones.append([cone.x, cone.y])
+    def listener_callback(self, coordinate):
+        if coordinate.tag == Tag.BLUE.value:
+            self.blue_cones.append([coordinate.x, coordinate.y])
+            plt.plot(coordinate.x, coordinate.y, 'o', c='blue')
+        elif coordinate.tag == Tag.YELLOW.value:
+            self.yellow_cones.append([coordinate.x, coordinate.y])
+            plt.plot(coordinate.x, coordinate.y, 'o', c='yellow')
+        elif coordinate.tag == Tag.ORANGE.value:
+            self.orange_cones.append([coordinate.x, coordinate.y])
+            plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
+        elif coordinate.tag == Tag.CAR_START.value:
+            self.car_start = [coordinate.x, coordinate.y]
+            plt.plot(coordinate.x, coordinate.y, 'o', c='black')
+
+        if self.x_min > coordinate.x:
+            self.x_min = coordinate.x
+        if self.x_max < coordinate.x:
+            self.x_max = coordinate.x
+        if self.y_min > coordinate.y:
+            self.y_min = coordinate.y
+        if self.y_max < coordinate.y:
+            self.y_max = coordinate.y
+        
+        plt.axis([self.x_min - 2, self.x_max + 2, self.y_min - 2, self.y_max + 2])
+        
+        self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
+        
+        #self.del_method.delaunay_method(coordinate,self.blue_cones,self.yellow_cones)
+        #self.middle_point_method.middle_point_method(coordinate,self.blue_cones,self.yellow_cones)
 
         plt.ion()
-        """
-        if len(self.blue_cones) >= PathPlanner.threshold and len(self.yellow_cones) >= PathPlanner.threshold:
-            path_x, path_y = Densify.calculate_path(self.blue_cones[-PathPlanner.cone_num:], self.yellow_cones[-PathPlanner.cone_num:])
-            plt.plot(path_x, path_y, 'o', c='green')
-
-        if self.blue_cones:
-            blue_cones_x, blue_cones_y = zip(*self.blue_cones)
-            plt.plot(blue_cones_x, blue_cones_y, 'o', c='blue')
-        if self.yellow_cones:
-            yellow_cones_x, yellow_cones_y = zip(*self.yellow_cones)
-            plt.plot(yellow_cones_x, yellow_cones_y, 'o', c='yellow')
-        if self.orange_cones:
-            orange_cones_x, orange_cones_y = zip(*self.orange_cones)
-            plt.plot(orange_cones_x, orange_cones_y, 'o', c='orange')
-        if self.big_orange_cones:
-            big_orange_cones_x, big_orange_cones_y = zip(*self.big_orange_cones)
-            plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
-        """
 
         plt.show()
         plt.pause(0.0001)

@@ -1,7 +1,8 @@
 import numpy as np
 
 
-def import_track(file_path: str,
+def import_track(reftrack,
+                 file_path: str,
                  imp_opts: dict,
                  width_veh: float) -> np.ndarray:
     """
@@ -23,7 +24,10 @@ def import_track(file_path: str,
     """
 
     # load data from csv file
-    csv_data_temp = np.loadtxt(file_path, comments='#', delimiter=',')
+    if reftrack is None:
+        csv_data_temp = np.loadtxt(file_path, comments='#', delimiter=',')
+    else:
+        csv_data_temp = np.array(reftrack)
 
     # get coords and track widths out of array
     if np.shape(csv_data_temp)[1] == 3:

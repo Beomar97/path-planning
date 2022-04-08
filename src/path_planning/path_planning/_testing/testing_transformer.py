@@ -23,5 +23,7 @@ def main():
 
     plt.show()
 
+    main_globaltraj.optimize(reftrack)
+
 if __name__ == '__main__':
     main()

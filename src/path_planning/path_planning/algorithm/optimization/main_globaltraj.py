@@ -23,7 +23,7 @@ Documentation:
 This script has to be executed to generate an optimal trajectory based on a given reference track.
 """
 
-def optimize():
+def optimize(reftrack=None):
 
     # ----------------------------------------------------------------------------------------------------------------------
     # USER INPUT -----------------------------------------------------------------------------------------------------------
@@ -45,10 +45,11 @@ def optimize():
                  "mintime_plots": False}            # plot states, controls, friction coeffs etc. (mintime only)
 
     # select track file (including centerline coordinates + track widths) --------------------------------------------------
-    # file_paths["track_name"] = "rounded_rectangle"                              # artificial track
-    # file_paths["track_name"] = "handling_track"                                 # artificial track
-    file_paths["track_name"] = "berlin_2018"                                    # Berlin Formula E 2018
-    # file_paths["track_name"] = "modena_2019"                                    # Modena 2019
+    # 'rounded_rectangle'   artificial track
+    # 'handling_track'      artificial track
+    # 'berlin_2018'         Berlin Formula E 2018
+    # 'modena_2019'         Modena 2019
+    file_paths["track_name"] = "berlin_2018"  
 
     # set import options ---------------------------------------------------------------------------------------------------
     imp_opts = {"flip_imp_track": False,                # flip imported track to reverse direction
@@ -209,7 +210,8 @@ def optimize():
     t_start = time.perf_counter()
 
     # import track
-    reftrack_imp = import_track(imp_opts=imp_opts,
+    reftrack_imp = import_track(reftrack,
+                                imp_opts=imp_opts,
                                 file_path=file_paths["track_file"],
                                 width_veh=pars["veh_params"]["width"])
 

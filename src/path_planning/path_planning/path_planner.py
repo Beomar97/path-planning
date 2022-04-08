@@ -42,12 +42,13 @@ class PathPlanner(Node):
         else:
             self.big_orange_cones.append([cone.x, cone.y])
 
-        plt.ion()
+        #plt.ion()
 
         if len(self.blue_cones) >= PathPlanner.threshold and len(self.yellow_cones) >= PathPlanner.threshold:
             path_x, path_y = Ultimate.calculate_path(self.current_pos, self.blue_cones, self.yellow_cones)
-            plt.plot(path_x, path_y, 'o', c='green')
+            #plt.plot(path_x, path_y, 'o', c='green')
 
+        """
         if self.blue_cones:
             blue_cones_x, blue_cones_y = zip(*self.blue_cones)
             plt.plot(blue_cones_x, blue_cones_y, 'o', c='blue')
@@ -63,6 +64,7 @@ class PathPlanner(Node):
 
         plt.show()
         plt.pause(0.0001)
+        """
 
 
 def main(args=None):

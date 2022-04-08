@@ -7,9 +7,9 @@ class OptimizationInputTransformer:
     def transform(blue_cones, yellow_cones, refline):
 
         # input
-        # blue_cones: x, y
-        # yellow cones: x, y
-        # refline: x, y
+        # blue_cones: [x, y]
+        # yellow cones: [x, y]
+        # refline: [x, y]
 
         # output
         # reftrack: x_m, y_m, w_tr_right_m, w_tr_left_m

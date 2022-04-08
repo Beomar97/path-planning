@@ -5,6 +5,7 @@ from interfaces.msg import Coordinate
 from path_planning.model.tag import Tag
 from path_planning.algorithm.densify import Densify
 from path_planning.algorithm.interpolate import Interpolate
+from path_planning.algorithm.ultimate import Ultimate
 
 class PathPlanner(Node):
 
@@ -12,12 +13,13 @@ class PathPlanner(Node):
     topic = 'map'
     queue_size = 10
 
-    threshold = 3
-    cone_num = 3
+    threshold = 2
+    #cone_num = 3
 
     def __init__(self):
         super().__init__('path_planner')
 
+        self.current_pos = [-13.0,10.3]
         self.blue_cones = []
         self.yellow_cones = []
         self.orange_cones = []
@@ -43,7 +45,7 @@ class PathPlanner(Node):
         plt.ion()
 
         if len(self.blue_cones) >= PathPlanner.threshold and len(self.yellow_cones) >= PathPlanner.threshold:
-            path_x, path_y = Densify.calculate_path(self.blue_cones[-PathPlanner.cone_num:], self.yellow_cones[-PathPlanner.cone_num:])
+            path_x, path_y = Ultimate.calculate_path(self.current_pos, self.blue_cones, self.yellow_cones)
             plt.plot(path_x, path_y, 'o', c='green')
 
         if self.blue_cones:

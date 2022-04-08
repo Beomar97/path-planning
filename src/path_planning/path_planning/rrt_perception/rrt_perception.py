@@ -32,6 +32,9 @@ class RRTPerception(Node):
         self.orange_cones = []
         self.big_orange_cones = []
         self.car_start = []
+
+        self.middle_points = []
+
         self.x_min = 0
         self.x_max = 0
         self.y_min = 0
@@ -50,16 +53,16 @@ class RRTPerception(Node):
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, coordinate):
-        if coordinate.tag == Tag.BLUE.value:
-            self.blue_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='blue')
-        elif coordinate.tag == Tag.YELLOW.value:
-            self.yellow_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='yellow')
-        elif coordinate.tag == Tag.ORANGE.value:
-            self.orange_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
-        elif coordinate.tag == Tag.CAR_START.value:
+        #if coordinate.tag == Tag.BLUE.value:
+        #    self.blue_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='blue')
+        #elif coordinate.tag == Tag.YELLOW.value:
+        #    self.yellow_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='yellow')
+        #elif coordinate.tag == Tag.ORANGE.value:
+        #    self.orange_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
+        if coordinate.tag == Tag.CAR_START.value:
             self.car_start = [coordinate.x, coordinate.y]
             plt.plot(coordinate.x, coordinate.y, 'o', c='black')
 
@@ -74,8 +77,18 @@ class RRTPerception(Node):
         
         plt.axis([self.x_min - 2, self.x_max + 2, self.y_min - 2, self.y_max + 2])
         
-        self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
-        
+        #self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
+        newMiddlePoints = []
+        if len(self.middle_points) > 0:
+            carCoordinate = self.middle_points[len(self.middle_points)-1]
+            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, carCoordinate)
+        else:
+            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, None)
+
+        if len(newMiddlePoints) > 0:
+            for middle_point in newMiddlePoints:
+                self.middle_points.append(middle_point)
+
         #self.del_method.delaunay_method(coordinate,self.blue_cones,self.yellow_cones)
         #self.middle_point_method.middle_point_method(coordinate,self.blue_cones,self.yellow_cones)
 

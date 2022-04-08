@@ -71,7 +71,8 @@ class Delauney_Method_Imp:
                 middle_points.append(middle_point)
                 plt.plot(middle_point.x, middle_point.y, 'o', c='red')
 
-            
+        if len(middle_points) > 0 and carCoordinate != None:
+            middle_points.sort(key=lambda middle_point: Edge(middle_point,carCoordinate).length())
             
         return middle_points
 

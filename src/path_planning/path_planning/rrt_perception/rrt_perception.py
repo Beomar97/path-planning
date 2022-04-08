@@ -7,7 +7,8 @@ from rclpy.node import Node
 from path_planning.model.tag import Tag
 from interfaces.msg import Coordinate
 
-from .edge import Edge
+#from .edge import Edge
+from path_planning.model.edge import Edge
 from .delauney_method import Delauney_Method
 from .delauney_method_imp import Delauney_Method_Imp
 from .middle_point_method import Middle_Point_Method
@@ -44,7 +45,6 @@ class RRTPerception(Node):
         self.middle_point_method = Middle_Point_Method()
         self.delauney_method_imp = Delauney_Method_Imp()
 
-
         self.subscription = self.create_subscription(
             RRTPerception.msg_type,
             RRTPerception.topic,
@@ -63,7 +63,7 @@ class RRTPerception(Node):
         #    self.orange_cones.append([coordinate.x, coordinate.y])
         #    plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
         if coordinate.tag == Tag.CAR_START.value:
-            self.car_start = [coordinate.x, coordinate.y]
+            self.car_start = coordinate
             plt.plot(coordinate.x, coordinate.y, 'o', c='black')
 
         if self.x_min > coordinate.x:
@@ -83,7 +83,7 @@ class RRTPerception(Node):
             carCoordinate = self.middle_points[len(self.middle_points)-1]
             newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, carCoordinate)
         else:
-            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, None)
+            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_start)
 
         if len(newMiddlePoints) > 0:
             for middle_point in newMiddlePoints:
@@ -96,7 +96,7 @@ class RRTPerception(Node):
 
         plt.show()
         plt.pause(0.0001)
-
+       
 
 def main(args=None):
     rclpy.init(args=args)

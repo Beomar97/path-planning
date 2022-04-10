@@ -7,7 +7,8 @@ from rclpy.node import Node
 from path_planning.model.tag import Tag
 from interfaces.msg import Coordinate
 
-from .edge import Edge
+#from .edge import Edge
+from path_planning.model.edge import Edge
 from .delauney_method import Delauney_Method
 from .delauney_method_imp import Delauney_Method_Imp
 from .middle_point_method import Middle_Point_Method
@@ -31,7 +32,10 @@ class RRTPerception(Node):
         self.yellow_cones = []
         self.orange_cones = []
         self.big_orange_cones = []
-        self.car_start = []
+        self.car_position = None
+
+        self.middle_points = []
+
         self.x_min = 0
         self.x_max = 0
         self.y_min = 0
@@ -41,7 +45,6 @@ class RRTPerception(Node):
         self.middle_point_method = Middle_Point_Method()
         self.delauney_method_imp = Delauney_Method_Imp()
 
-
         self.subscription = self.create_subscription(
             RRTPerception.msg_type,
             RRTPerception.topic,
@@ -50,18 +53,22 @@ class RRTPerception(Node):
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, coordinate):
-        if coordinate.tag == Tag.BLUE.value:
-            self.blue_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='blue')
-        elif coordinate.tag == Tag.YELLOW.value:
-            self.yellow_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='yellow')
-        elif coordinate.tag == Tag.ORANGE.value:
-            self.orange_cones.append([coordinate.x, coordinate.y])
-            plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
-        elif coordinate.tag == Tag.CAR_START.value:
-            self.car_start = [coordinate.x, coordinate.y]
+        #if coordinate.tag == Tag.BLUE.value:
+        #    self.blue_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='blue')
+        #elif coordinate.tag == Tag.YELLOW.value:
+        #    self.yellow_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='yellow')
+        #elif coordinate.tag == Tag.ORANGE.value:
+        #    self.orange_cones.append([coordinate.x, coordinate.y])
+        #    plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
+        if coordinate.tag == Tag.CAR_START.value:
+            self.car_position = coordinate
             plt.plot(coordinate.x, coordinate.y, 'o', c='black')
+        
+        plt.ion()
+
+        
 
         if self.x_min > coordinate.x:
             self.x_min = coordinate.x
@@ -74,16 +81,31 @@ class RRTPerception(Node):
         
         plt.axis([self.x_min - 2, self.x_max + 2, self.y_min - 2, self.y_max + 2])
         
-        self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
-        
+        #self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
+        newMiddlePoints = []
+        #if len(self.middle_points) > 0:
+        if coordinate.tag != Tag.CAR_START.value and self.car_position != None:
+            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_position)
+        #elif self.car_start != []:
+        #    newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_start)
+        #else:
+        #    newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, None)
+
+        if len(newMiddlePoints) > 0:
+            for middle_point in newMiddlePoints:
+                self.middle_points.append(middle_point)
+            self.car_position =  self.middle_points[len(self.middle_points)-1]
+            plt.plot(self.car_position.x,self.car_position.y,'o',c='black')
+            print("settet")
+
         #self.del_method.delaunay_method(coordinate,self.blue_cones,self.yellow_cones)
         #self.middle_point_method.middle_point_method(coordinate,self.blue_cones,self.yellow_cones)
-
-        plt.ion()
 
         plt.show()
         plt.pause(0.0001)
 
+        
+       
 
 def main(args=None):
     rclpy.init(args=args)

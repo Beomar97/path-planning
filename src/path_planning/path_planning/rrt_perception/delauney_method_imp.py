@@ -15,6 +15,7 @@ class Delauney_Method_Imp:
         self.blue_cones = []
         self.yellow_cones = []
         self.treshholdCar = 7
+        self.treshholdOtherCone = 6
 
         self.middle_points = []
 
@@ -22,6 +23,8 @@ class Delauney_Method_Imp:
 
     def delauney_method_improved(self,coneCoordinate: Coordinate, carCoordinate: Coordinate):
         self.carCoordinate = carCoordinate
+        front_cones = []
+        middle_points = []
 
         if coneCoordinate.tag == Tag.BLUE.value:
             self.blue_cones.append(coneCoordinate)
@@ -42,14 +45,43 @@ class Delauney_Method_Imp:
                 if coneCoordinate.tag == Tag.BLUE.value:
                     distanceToLastOpposite = Edge(coneCoordinate,self.yellow_cones[len(self.yellow_cones)-1]).length()
                     print("Distance from: " + coneCoordinate.tag + " to last yellow cone: " + str(distanceToLastOpposite))
+                    if distanceToLastOpposite < self.treshholdOtherCone:
+                        front_cones.append(self.blue_cones[len(self.blue_cones)-2])
+                        front_cones.append(self.blue_cones[len(self.blue_cones)-1])
+
+                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-2])
+                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-1])
+
+                        delauneyEdges = self.getDelaunayEdges(front_cones)
+
+                        #print(delauneyEdges)
+                        for edge in delauneyEdges:
+                            middle_point = edge.getMiddlePoint()
+                            middle_points.append(middle_point)
+                            plt.plot(middle_point.x, middle_point.y, 'o', c='red')
+
+
                 elif coneCoordinate.tag == Tag.YELLOW.value:
                     distanceToLastOpposite = Edge(coneCoordinate,self.blue_cones[len(self.blue_cones)-1]).length()
                     print("Distance from: " + coneCoordinate.tag + " to last blue cone: " + str(distanceToLastOpposite))
+
+                    if distanceToLastOpposite < self.treshholdOtherCone:
+                        front_cones.append(self.blue_cones[len(self.blue_cones)-2])
+                        front_cones.append(self.blue_cones[len(self.blue_cones)-1])
+                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-2])
+                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-1])
+
+                        delauneyEdges = self.getDelaunayEdges(front_cones)
+
+                        #print(delauneyEdges)
+                        for edge in delauneyEdges:
+                            middle_point = edge.getMiddlePoint()
+                            middle_points.append(middle_point)
+                            plt.plot(middle_point.x, middle_point.y, 'o', c='red')
                     
 
         
-        front_cones = []
-        middle_points = []
+        
 
         if len(self.blue_cones) == 2 and len(self.yellow_cones) == 2:
             #yellowCone = self.yellow_cones[0]
@@ -79,7 +111,6 @@ class Delauney_Method_Imp:
             delauneyEdges = self.getDelaunayEdges(front_cones)
 
             #print(delauneyEdges)
-            middle_points = []
             for edge in delauneyEdges:
                 middle_point = edge.getMiddlePoint()
                 middle_points.append(middle_point)

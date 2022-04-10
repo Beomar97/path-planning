@@ -32,7 +32,7 @@ class RRTPerception(Node):
         self.yellow_cones = []
         self.orange_cones = []
         self.big_orange_cones = []
-        self.car_start = []
+        self.car_position = None
 
         self.middle_points = []
 
@@ -63,8 +63,12 @@ class RRTPerception(Node):
         #    self.orange_cones.append([coordinate.x, coordinate.y])
         #    plt.plot(coordinate.x, coordinate.y, 'o', c='orange')
         if coordinate.tag == Tag.CAR_START.value:
-            self.car_start = coordinate
+            self.car_position = coordinate
             plt.plot(coordinate.x, coordinate.y, 'o', c='black')
+        
+        plt.ion()
+
+        
 
         if self.x_min > coordinate.x:
             self.x_min = coordinate.x
@@ -79,23 +83,28 @@ class RRTPerception(Node):
         
         #self.delauney_method_imp.delauney_method_improved(coordinate,self.blue_cones,self.yellow_cones)
         newMiddlePoints = []
-        if len(self.middle_points) > 0:
-            carCoordinate = self.middle_points[len(self.middle_points)-1]
-            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, carCoordinate)
-        else:
-            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_start)
+        #if len(self.middle_points) > 0:
+        if coordinate.tag != Tag.CAR_START.value and self.car_position != None:
+            newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_position)
+        #elif self.car_start != []:
+        #    newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, self.car_start)
+        #else:
+        #    newMiddlePoints = self.delauney_method_imp.delauney_method_improved(coordinate, None)
 
         if len(newMiddlePoints) > 0:
             for middle_point in newMiddlePoints:
                 self.middle_points.append(middle_point)
+            self.car_position =  self.middle_points[len(self.middle_points)-1]
+            plt.plot(self.car_position.x,self.car_position.y,'o',c='black')
+            print("settet")
 
         #self.del_method.delaunay_method(coordinate,self.blue_cones,self.yellow_cones)
         #self.middle_point_method.middle_point_method(coordinate,self.blue_cones,self.yellow_cones)
 
-        plt.ion()
-
         plt.show()
         plt.pause(0.0001)
+
+        
        
 
 def main(args=None):

@@ -19,6 +19,7 @@ class PathPlanner(Node):
     cone_threshold = 1
     pos_threshold = 20
     distance_threshold = 6
+    edge_threshold = 8
 
     def __init__(self):
         super().__init__('path_planner')
@@ -82,23 +83,10 @@ class PathPlanner(Node):
                     if distance_to_opposite <= PathPlanner.distance_threshold:
                         print('Delaunay with:', new_cone, self.new_blue_cones, self.new_yellow_cones)
 
-                        #dist_blue_cones = cdist([new_cone], self.new_blue_cones)
-                        #idx = np.where(dist_blue_cones <= PathPlanner.pos_threshold)
-                        #blues_to_triangulate = []
-                        #for key in idx:
-                        #    blues_to_triangulate.append(self.blue_cones[key[0]])
-
-                        #dist_yellow_cones = cdist([new_cone], self.new_yellow_cones)
-                        #idx = np.where(dist_yellow_cones <= PathPlanner.pos_threshold)
-                        #yellows_to_triangulate = []
-                        #for key in idx:
-                        #    yellows_to_triangulate.append(self.yellow_cones[key[0]])
-
                         cones_to_triangulate = []
                         cones_to_triangulate.append(new_cone)
                         cones_to_triangulate.extend(self.new_blue_cones)
                         cones_to_triangulate.extend(self.new_yellow_cones)
-                        self.cones_to_triangulate = cones_to_triangulate
 
                         triangulation = Delaunay(cones_to_triangulate)
 
@@ -130,7 +118,7 @@ class PathPlanner(Node):
                             else:
                                 edge2 = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
                             
-                            if edge1 != edge2:
+                            if edge1 != edge2 and (math.sqrt((edge[0][0] - edge[1][0]) ** 2 + (edge[0][1] - edge[1][1]) ** 2) <= PathPlanner.edge_threshold):
                                 midpoint = ((edge[0][0] + edge[1][0])/2, (edge[0][1] + edge[1][1])/2)
                                 midpoints.append(midpoint)
 

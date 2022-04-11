@@ -30,37 +30,51 @@ class Delauney_Method_Imp:
             self.yellow_cones.append(coneCoordinate)
             plt.plot(coneCoordinate.x, coneCoordinate.y, 'o', c='yellow')
 
-        if self.carCoordinate != None:
+        if len(self.blue_cones) > 1 and len(self.yellow_cones) > 1:
             #print(carCoordinate)
-            plt.plot(self.carCoordinate.x,self.carCoordinate.y,'o',c='black')
+            
+            print("Car: x: " + str(carCoordinate.x) + ", y: " + str(carCoordinate.y))
             carDistanceToCone = self.coordinate_distance(coneCoordinate,self.carCoordinate)
-            print("Car distance to cone: " + str(carDistanceToCone))
+            print("Cone: tag: " + coneCoordinate.tag + ", x: " + str(coneCoordinate.x) + ", y: " + str(coneCoordinate.y) + ", distance: " + str(carDistanceToCone))
             if self.treshholdCar > carDistanceToCone:
                 print("Under treshhold")
+                distanceToLastOpposite = ""
+                if coneCoordinate.tag == Tag.BLUE.value:
+                    distanceToLastOpposite = Edge(coneCoordinate,self.yellow_cones[len(self.yellow_cones)-1]).length()
+                    print("Distance from: " + coneCoordinate.tag + " to last yellow cone: " + str(distanceToLastOpposite))
+                elif coneCoordinate.tag == Tag.YELLOW.value:
+                    distanceToLastOpposite = Edge(coneCoordinate,self.blue_cones[len(self.blue_cones)-1]).length()
+                    print("Distance from: " + coneCoordinate.tag + " to last blue cone: " + str(distanceToLastOpposite))
+                    
 
-        blueConesLength = len(self.blue_cones)
-        yellowConesLength = len(self.yellow_cones)
-
+        
         front_cones = []
         middle_points = []
 
-        if blueConesLength == 3 and yellowConesLength == 2:
-            yellowCone = self.yellow_cones[0]
-            print(yellowCone)
-            front_cones.append(yellowCone)
+        if len(self.blue_cones) == 2 and len(self.yellow_cones) == 2:
+            #yellowCone = self.yellow_cones[0]
+            #print(yellowCone)
+            #front_cones.append(yellowCone)
+#
+            #for blueCone in self.blue_cones:
+            #    distance = self.coordinate_distance(yellowCone,blueCone)
+#
+            #    if distance < 7:
+            #        front_cones.append(blueCone)
+#
+            #    print("distance: " + str(distance))
+#
+            #if len(front_cones) == 3:
+            #    front_cones.append(self.yellow_cones[1])
+            #else:
+            #    front_cones.append(self.blue_cones[2])
 
-            for blueCone in self.blue_cones:
-                distance = self.coordinate_distance(yellowCone,blueCone)
-
-                if distance < 7:
-                    front_cones.append(blueCone)
-
-                print("distance: " + str(distance))
-
-            if len(front_cones) == 3:
-                front_cones.append(self.yellow_cones[1])
-            else:
-                front_cones.append(self.blue_cones[2])
+            
+            front_cones.append(self.blue_cones[0])
+            front_cones.append(self.blue_cones[1])
+            front_cones.append(self.yellow_cones[0])
+            front_cones.append(self.yellow_cones[1])
+                
             
             delauneyEdges = self.getDelaunayEdges(front_cones)
 
@@ -75,6 +89,7 @@ class Delauney_Method_Imp:
             middle_points.sort(key=lambda middle_point: Edge(middle_point,carCoordinate).length())
             
         return middle_points
+        
 
     #def quick_sort_middle_points(self,middle_points,carCoordinate):
         
@@ -86,8 +101,9 @@ class Delauney_Method_Imp:
         return edge.length()
 
     def getDelaunayEdges(self, frontCones):
-        if len(frontCones) < 4: # no sense to calculate delaunay
+        if len(frontCones) < 3: # no sense to calculate delaunay
             return
+        frontConesLength = len(frontCones)
         
         conePointsDel = np.zeros((len(frontCones), 2))
         conePoints = np.zeros((len(frontCones), 3))
@@ -107,9 +123,9 @@ class Delauney_Method_Imp:
         delaunayEdges = []
         for simp in tri.simplices:
 
-            for i in range(3):
+            for i in range(frontConesLength-1):
                 j = i + 1
-                if j == 3:
+                if j == frontConesLength-1:
                     j = 0
                 
                 cone1 = Coordinate()
@@ -141,12 +157,12 @@ class Delauney_Method_Imp:
         self.blue_cones = blue_cones
         self.yellow_cones = yellow_cones
 
-        blueConesLength = len(self.blue_cones)
-        yellowConesLength = len(self.yellow_cones)
+        len(self.blue_cones) = len(self.blue_cones)
+        len(self.yellow_cones) = len(self.yellow_cones)
 
         front_cones = []
 
-        if blueConesLength == 3 and yellowConesLength == 2:
+        if len(self.blue_cones) == 3 and len(self.yellow_cones) == 2:
             yellowCone = Cone(self.yellow_cones[0])
             print(yellowCone)
             front_cones.append(yellowCone)

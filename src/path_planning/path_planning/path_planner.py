@@ -21,7 +21,7 @@ class PathPlanner(Node):
 
     cones_threshold = 3
     position_distance_threshold = 20
-    cone_distance_threshold = 12
+    cone_distance_threshold = 9
     edge_distance_threshold = 7
 
     def __init__(self):
@@ -46,15 +46,21 @@ class PathPlanner(Node):
 
     def listener_callback(self, next_cone):
 
+        plt.ion()
+        pos_plot = plt.plot([self.current_position[0]], [
+            self.current_position[1]], 'o', c='black')
+
         logging.info('-----------------------')
         logging.info(f'Current Position: {self.current_position}')
         logging.info(
             f'Next Cone: Tag={next_cone.tag}, Coordinates=({next_cone.x}, {next_cone.y})')
 
-        # for if only coordinates (x, y) are needed
+        # if only coordinates (x, y) are needed
         next_coordinate = [next_cone.x, next_cone.y]
+        # cones, which will be used for this iteration's triangulation
         cones_to_triangulate = []
         triangulated = False
+
         if len(self.blue_cones) + len(self.yellow_cones) >= PathPlanner.cones_threshold:
 
             # calculate distance from current position to the next cone
@@ -67,20 +73,19 @@ class PathPlanner(Node):
                 logging.info(
                     'Over Threshold! Distance to Next Cone is too big...')
             else:
+                # copy cones to new list, as
                 blue_cones = copy.deepcopy(self.blue_cones)
                 yellow_cones = copy.deepcopy(self.yellow_cones)
                 cones = []
                 cones.extend(blue_cones)
                 cones.extend(yellow_cones)
 
-                while cones:
-                    cone = cones.pop()
-                    print(cone)
-                    print(next_coordinate)
+                for cone in cones:
                     distance_to_cone = cdist([next_coordinate], [cone])[0][0]
 
                     if distance_to_cone <= PathPlanner.cone_distance_threshold:
                         cones_to_triangulate.append(cone)
+                        logging.info(f'Add for Triangulation: {cone}')
 
                 if len(cones_to_triangulate) >= PathPlanner.cones_threshold:
                     triangulation = Delaunay(cones_to_triangulate)
@@ -93,43 +98,45 @@ class PathPlanner(Node):
                             j = 0
 
                         # don't want to add mirrored edges (e.g. 1<->2 and 2<->1)
-                        edge = (
-                            cones_to_triangulate[simplicy[i]], cones_to_triangulate[simplicy[j]])
-                        edge_mirrored = (
-                            cones_to_triangulate[simplicy[j]], cones_to_triangulate[simplicy[i]])
+                        edge = [cones_to_triangulate[simplicy[i]],
+                                cones_to_triangulate[simplicy[j]]]
+                        edge_mirrored = [
+                            cones_to_triangulate[simplicy[j]], cones_to_triangulate[simplicy[i]]]
                         if edge and edge_mirrored not in edges:
                             edges.append(edge)
 
                     midpoints = []
                     for edge in edges:
+                        # An edge is made up of two points [a[x,y],b[x,y]]
+                        point_a = edge[0]
+                        point_b = edge[1]
+
+                        if point_a in self.blue_cones:
+                            point_a_tag = Tag.BLUE.value
+                        elif point_a in self.yellow_cones:
+                            point_a_tag = Tag.YELLOW.value
+                        else:
+                            point_a_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
+
+                        if point_b in self.blue_cones:
+                            point_b_tag = Tag.BLUE.value
+                        elif point_b in self.yellow_cones:
+                            point_b_tag = Tag.YELLOW.value
+                        else:
+                            point_b_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
+
                         # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
-                        if edge[0] in self.blue_cones:
-                            edge1 = Tag.BLUE.value
-                        elif edge[0] in self.yellow_cones:
-                            edge1 = Tag.YELLOW.value
-                        else:
-                            edge1 = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
-
-                        if edge[1] in self.blue_cones:
-                            edge2 = Tag.BLUE.value
-                        elif edge[1] in self.yellow_cones:
-                            edge2 = Tag.YELLOW.value
-                        else:
-                            edge2 = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
-
-                        # use midpoint only if distance between edges is not too big
-                        if edge1 != edge2:
-                            if (math.sqrt((edge[0][0] - edge[1][0]) ** 2 + (edge[0][1] - edge[1][1]) ** 2) <= PathPlanner.edge_distance_threshold):
-                                midpoint = (
-                                    (edge[0][0] + edge[1][0])/2, (edge[0][1] + edge[1][1])/2)
-                                midpoints.append(midpoint)
-                                logging.info(
-                                    f'Add as Midpoint: {midpoint}')
+                        # and use midpoint only if distance between edges is not too big
+                        if point_a_tag != point_b_tag and getLength(point_a, point_b) <= PathPlanner.edge_distance_threshold:
+                            midpoint = getMidpoint(point_a, point_b)
+                            midpoints.append(midpoint)
+                            logging.info(
+                                f'Add as Midpoint: {midpoint}')
 
                         if midpoints:
                             # sort midpoints by distance => furthest midpoint comes last
-                            midpoints.sort(key=lambda midpoint: math.sqrt(
-                                (midpoint[0] - self.current_position[0]) ** 2 + (midpoint[1] - self.current_position[1]) ** 2))
+                            midpoints.sort(key=lambda midpoint: getLength(
+                                self.current_position, midpoint))
                             #  set furthest midpoint as new car position
                             self.current_position = midpoints[-1]
 
@@ -142,8 +149,6 @@ class PathPlanner(Node):
             self.orange_cones.append([next_cone.x, next_cone.y])
         else:
             self.big_orange_cones.append([next_cone.x, next_cone.y])
-
-        plt.ion()
 
         if self.blue_cones:
             blue_cones_x, blue_cones_y = zip(*self.blue_cones)
@@ -163,8 +168,8 @@ class PathPlanner(Node):
         if triangulated:
             cones_to_triangulate_x, cones_to_triangulate_y = zip(
                 *cones_to_triangulate)
-            plt.triplot(cones_to_triangulate_x,
-                        cones_to_triangulate_y, triangulation.simplices)
+            triplot = plt.triplot(cones_to_triangulate_x,
+                                  cones_to_triangulate_y, triangulation.simplices)
             if midpoints:
                 midpoints_x, midpoints_y = zip(*midpoints)
                 plt.plot(midpoints_x, midpoints_y, 'o', c='red')
@@ -172,6 +177,19 @@ class PathPlanner(Node):
 
         plt.show()
         plt.pause(0.0001)
+
+        if triangulated:
+            triplot.pop(0).remove()
+
+        pos_plot.pop(0).remove()
+
+
+def getLength(point_a, point_b):
+    return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
+
+
+def getMidpoint(point_a, point_b):
+    return [(point_a[0] + point_b[0])/2, (point_a[1] + point_b[1])/2]
 
 
 def main(args=None):

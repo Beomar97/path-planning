@@ -45,15 +45,20 @@ class PathPlanner(Node):
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, next_cone):
-
-        plt.ion()
-        pos_plot = plt.plot([self.current_position[0]], [
-            self.current_position[1]], 'o', c='black')
-
         logging.info('-----------------------')
         logging.info(f'Current Position: {self.current_position}')
         logging.info(
             f'Next Cone: Tag={next_cone.tag}, Coordinates=({next_cone.x}, {next_cone.y})')
+
+        # add next cone to its corresponding list regarding it's tag
+        if next_cone.tag == Tag.BLUE.value:
+            self.blue_cones.append([next_cone.x, next_cone.y])
+        elif next_cone.tag == Tag.YELLOW.value:
+            self.yellow_cones.append([next_cone.x, next_cone.y])
+        elif next_cone.tag == Tag.ORANGE.value:
+            self.orange_cones.append([next_cone.x, next_cone.y])
+        else:
+            self.big_orange_cones.append([next_cone.x, next_cone.y])
 
         # if only coordinates (x, y) are needed
         next_coordinate = [next_cone.x, next_cone.y]
@@ -141,47 +146,34 @@ class PathPlanner(Node):
                             self.current_position = midpoints[-1]
 
         # Plotting
-        if next_cone.tag == Tag.BLUE.value:
-            self.blue_cones.append([next_cone.x, next_cone.y])
-        elif next_cone.tag == Tag.YELLOW.value:
-            self.yellow_cones.append([next_cone.x, next_cone.y])
-        elif next_cone.tag == Tag.ORANGE.value:
-            self.orange_cones.append([next_cone.x, next_cone.y])
-        else:
-            self.big_orange_cones.append([next_cone.x, next_cone.y])
+        plt.ion()
 
-        if self.blue_cones:
-            blue_cones_x, blue_cones_y = zip(*self.blue_cones)
-            plt.plot(blue_cones_x, blue_cones_y, 'o', c='blue')
-        if self.yellow_cones:
-            yellow_cones_x, yellow_cones_y = zip(*self.yellow_cones)
-            plt.plot(yellow_cones_x, yellow_cones_y, 'o', c='yellow')
-        if self.orange_cones:
-            orange_cones_x, orange_cones_y = zip(*self.orange_cones)
-            plt.plot(orange_cones_x, orange_cones_y, 'o', c='orange')
-        if self.big_orange_cones:
-            big_orange_cones_x, big_orange_cones_y = zip(
-                *self.big_orange_cones)
-            plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
+        # Plot current cone received
+        if next_cone.tag == Tag.BLUE.value:
+            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='blue')
+        if next_cone.tag == Tag.YELLOW.value:
+            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='yellow')
+        if next_cone.tag == Tag.ORANGE.value:
+            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='orange')
+        if next_cone.tag == Tag.BIG_ORANGE.value:
+            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='red')
 
         # Plot triangulation and midpoints if happened
         if triangulated:
             cones_to_triangulate_x, cones_to_triangulate_y = zip(
                 *cones_to_triangulate)
-            triplot = plt.triplot(cones_to_triangulate_x,
-                                  cones_to_triangulate_y, triangulation.simplices)
+            tri_plot = plt.triplot(cones_to_triangulate_x,
+                                   cones_to_triangulate_y, triangulation.simplices)
             if midpoints:
                 midpoints_x, midpoints_y = zip(*midpoints)
-                plt.plot(midpoints_x, midpoints_y, 'o', c='red')
-            self.reset_new_cones = False
+                mid_plot = plt.plot(midpoints_x, midpoints_y, 'o', c='red')
+
+        # Plot current position
+        pos_plot = plt.plot([self.current_position[0]], [
+            self.current_position[1]], 'o', c='black')
 
         plt.show()
         plt.pause(0.0001)
-
-        if triangulated:
-            triplot.pop(0).remove()
-
-        pos_plot.pop(0).remove()
 
 
 def getLength(point_a, point_b):

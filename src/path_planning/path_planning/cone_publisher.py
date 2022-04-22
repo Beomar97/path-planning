@@ -34,7 +34,7 @@ class ConePublisher(Node):
             ConePublisher.queue_size
         )
 
-        timer_period = 0.5  # seconds
+        timer_period = 0.2  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.i = 0
         self.b_i = 0

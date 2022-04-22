@@ -7,7 +7,10 @@
   <maintainer email="forstma1@students.zhaw.ch">Marco Forster</maintainer>
   <license>Apache License 2.0</license>
 
-  <exec_depend>interfaces</exec_depend>
+  <depend>fs_msgs</depend>
+  <depend>fszhaw_msgs</depend>
+  <depend>interfaces</depend>
+
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
   <exec_depend>python-numpy</exec_depend>

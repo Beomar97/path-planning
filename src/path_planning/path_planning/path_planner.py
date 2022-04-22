@@ -78,12 +78,9 @@ class PathPlanner(Node):
                 logging.info(
                     'Over Threshold! Distance to Next Cone is too big...')
             else:
-                # copy cones to new list, as
-                blue_cones = copy.deepcopy(self.blue_cones)
-                yellow_cones = copy.deepcopy(self.yellow_cones)
                 cones = []
-                cones.extend(blue_cones)
-                cones.extend(yellow_cones)
+                cones.extend(self.blue_cones)
+                cones.extend(self.yellow_cones)
 
                 for cone in cones:
                     distance_to_cone = cdist([next_coordinate], [cone])[0][0]

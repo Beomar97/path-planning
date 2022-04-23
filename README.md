@@ -52,6 +52,10 @@ Package structure
 
 4. Build packages (from workspace root `ROS_Path_Planning`)
 
+   Optional: If colcon command is still missing
+
+   `sudo apt install python3-colcon-common-extensions`
+
    `colcon build`
 
    or

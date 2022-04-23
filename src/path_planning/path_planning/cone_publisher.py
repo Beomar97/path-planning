@@ -1,14 +1,18 @@
 import csv
 import os
+
 import rclpy
+from fszhaw_msgs.msg import Cone
+from geometry_msgs.msg import Point
 from rclpy.node import Node
-from interfaces.msg import Coordinate
+
 from path_planning.model.tag import Tag
+
 
 class ConePublisher(Node):
 
-    msg_type = Coordinate
-    topic = 'map'
+    msg_type = Cone
+    topic = 'cone'
     queue_size = 10
 
     def __init__(self):
@@ -22,15 +26,18 @@ class ConePublisher(Node):
             csv_reader = csv.DictReader(csv_file, delimiter=',')
 
             for row in csv_reader:
-                self.cones.append([row['tag'], float(row['x']), float(row['y'])])
+                self.cones.append(
+                    [row['tag'], float(row['x']), float(row['y'])])
                 if row['tag'] == Tag.BLUE.value:
-                    self.blue_cones.append([row['tag'], float(row['x']), float(row['y'])])
+                    self.blue_cones.append(
+                        [row['tag'], float(row['x']), float(row['y'])])
                 elif row['tag'] == Tag.YELLOW.value:
-                    self.yellow_cones.append([row['tag'], float(row['x']), float(row['y'])])
+                    self.yellow_cones.append(
+                        [row['tag'], float(row['x']), float(row['y'])])
 
         self.publisher_ = self.create_publisher(
-            ConePublisher.msg_type, 
-            ConePublisher.topic, 
+            ConePublisher.msg_type,
+            ConePublisher.topic,
             ConePublisher.queue_size
         )
 
@@ -43,7 +50,7 @@ class ConePublisher(Node):
     def timer_callback(self):
         if self.i < len(self.blue_cones) + len(self.yellow_cones):
 
-            cone = Coordinate()
+            cone = Cone()
             if self.i % 2 == 0:
                 if self.b_i >= len(self.blue_cones):
                     cone = self.publish_yellow()
@@ -55,29 +62,28 @@ class ConePublisher(Node):
                 else:
                     cone = self.publish_yellow()
 
-            #cone.tag = self.cones[self.i][0]
-            #cone.x = self.cones[self.i][1]
-            #cone.y = self.cones[self.i][2]
-
             self.publisher_.publish(cone)
-            self.get_logger().info(f'Publishing {self.i}: {cone.tag}, {cone.x}, {cone.y}')
+            self.get_logger().info(
+                f'Publishing {self.i}: {"BLUE" if cone.color == 0 else "YELLOW"}, {cone.location.x}, {cone.location.y}')
             self.i += 1
 
     def publish_yellow(self):
-        cone = Coordinate()
-        cone.tag = self.yellow_cones[self.y_i][0]
-        cone.x = self.yellow_cones[self.y_i][1]
-        cone.y = self.yellow_cones[self.y_i][2]
+        tag = Cone.YELLOW
+        x = self.yellow_cones[self.y_i][1]
+        y = self.yellow_cones[self.y_i][2]
+        z = 0.0
+
         self.y_i += 1
-        return cone
+        return Cone(color=tag, location=Point(x=x, y=y, z=z))
 
     def publish_blue(self):
-        cone = Coordinate()
-        cone.tag = self.blue_cones[self.b_i][0]
-        cone.x = self.blue_cones[self.b_i][1]
-        cone.y = self.blue_cones[self.b_i][2]
+        tag = Cone.BLUE
+        x = self.blue_cones[self.b_i][1]
+        y = self.blue_cones[self.b_i][2]
+        z = 0.0
+
         self.b_i += 1
-        return cone
+        return Cone(color=tag, location=Point(x=x, y=y, z=z))
 
 
 def main(args=None):

@@ -41,6 +41,10 @@ Package structure
    `setup.py`: name, version, maintainer, email, description, license, entry points
 
    `setup.cfg`: should already be ok
+   
+2. Initialize submodules (fszhaw_msgs)
+
+   `git submodule update --init`
 
 3. Install dependencies (from workspace root `ROS_Path_Planning`)
 

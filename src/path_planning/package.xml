@@ -2,28 +2,28 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>path_planning</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Path Planning package for FSZHAW autonomous system</description>
   <maintainer email="forstma1@students.zhaw.ch">Marco Forster</maintainer>
-  <license>Apache License 2.0</license>
+  <license>MIT</license>
 
-  <depend>fs_msgs</depend>
   <depend>fszhaw_msgs</depend>
+  <depend>fs_msgs</depend>
   <depend>interfaces</depend>
+  <depend>std_msgs</depend>
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
   <exec_depend>python-numpy</exec_depend>
   <exec_depend>casadi-pip</exec_depend>
   <exec_depend>python3-sklearn</exec_depend>
+  <exec_depend>python3-matplotlib</exec_depend>
   <!-- pip3 install trajectory_planning_helpers==0.76 -->
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
-  <test_depend>python3-matplotlib</test_depend>
-  <test_depend>python3-matplotlib</test_depend>
 
   <export>
     <build_type>ament_python</build_type>

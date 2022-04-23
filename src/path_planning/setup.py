@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 package_name = 'path_planning'
 
 setup(
     name=package_name,
-    version='0.0.0',
-    packages=find_packages(),
+    version='0.0.1',
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -16,7 +16,7 @@ setup(
     maintainer='Marco Forster',
     maintainer_email='forstma1@students.zhaw.ch',
     description='Path Planning package for FSZHAW autonomous system',
-    license='Apache License 2.0',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

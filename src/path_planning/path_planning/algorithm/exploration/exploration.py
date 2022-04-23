@@ -5,23 +5,32 @@ import math
 import matplotlib.pyplot as plt
 from scipy.spatial import Delaunay
 from scipy.spatial.distance import cdist
-
-from path_planning.model.tag import Tag
+from fszhaw_msgs.msg import Cone
 
 
 class Exploration:
-    position_distance_threshold = 20
-    cone_distance_threshold = 9
-    cones_threshold = 3
-    edge_distance_threshold = 7
+    POSITION_DISTANCE_THRESHOLD = 20
+    CONE_DISTANCE_THRESHOLD = 9
+    CONES_THRESHOLD = 3
+    EDGE_DISTANCE_THRESHOLD = 7
 
     def calculate_path(current_position, next_cone, blue_cones, yellow_cones, orange_cones, big_orange_cones, show_plot=False):
 
         # if only coordinates (x, y) are needed
-        next_coordinate = [next_cone.x, next_cone.y]
+        next_coordinate = [next_cone.location.x, next_cone.location.y]
+
         # cones, which will be used for this iteration's triangulation
         cones_to_triangulate = []
         triangulated = False
+
+        # midpoints of the planned path
+        midpoints = []
+
+        # check if enough cones for triangulation are received
+        if len(blue_cones) + len(yellow_cones) >= Exploration.CONES_THRESHOLD:
+            logging.info(
+                f'Not enough cones! At least {Exploration.CONES_THRESHOLD} cones are needed...')
+            return [current_position, midpoints]
 
         # calculate distance from current position to the next cone
         distance_to_next_cone = cdist(
@@ -29,7 +38,7 @@ class Exploration:
         logging.info(f'Distance to Next Cone: {distance_to_next_cone}')
 
         # check if distance from car to the next cone is too big
-        if distance_to_next_cone > Exploration.position_distance_threshold:
+        if distance_to_next_cone > Exploration.POSITION_DISTANCE_THRESHOLD:
             logging.info(
                 'Over Threshold! Distance to Next Cone is too big...')
         else:
@@ -42,7 +51,7 @@ class Exploration:
             for cone in cones:
                 distance_to_cone = cdist([next_coordinate], [cone])[0][0]
 
-                if distance_to_cone <= Exploration.cone_distance_threshold:
+                if distance_to_cone <= Exploration.CONE_DISTANCE_THRESHOLD:
                     cones_to_triangulate.append(cone)
                     logging.info(f'Add for Triangulation: {cone}')
 
@@ -64,37 +73,36 @@ class Exploration:
                     if edge and edge_mirrored not in edges:
                         edges.append(edge)
 
-                midpoints = []
                 for edge in edges:
                     # An edge is made up of two points [a[x,y],b[x,y]]
                     point_a = edge[0]
                     point_b = edge[1]
 
                     if point_a in blue_cones:
-                        point_a_tag = Tag.BLUE.value
+                        point_a_tag = Cone.BLUE
                     elif point_a in yellow_cones:
-                        point_a_tag = Tag.YELLOW.value
+                        point_a_tag = Cone.YELLOW
                     elif point_a in orange_cones:
-                        point_a_tag = Tag.ORANGE.value
+                        point_a_tag = Cone.ORANGE_SMALL
                     elif point_a in big_orange_cones:
-                        point_a_tag = Tag.BIG_ORANGE.value
+                        point_a_tag = Cone.ORANGE_BIG
                     else:
-                        point_a_tag = next_cone.tag
+                        point_a_tag = next_cone.color
 
                     if point_b in blue_cones:
-                        point_b_tag = Tag.BLUE.value
+                        point_b_tag = Cone.BLUE
                     elif point_b in yellow_cones:
-                        point_b_tag = Tag.YELLOW.value
+                        point_b_tag = Cone.YELLOW
                     elif point_b in orange_cones:
-                        point_b_tag = Tag.ORANGE.value
+                        point_b_tag = Cone.ORANGE_SMALL
                     elif point_b in big_orange_cones:
-                        point_b_tag = Tag.BIG_ORANGE.value
+                        point_b_tag = Cone.ORANGE_BIG
                     else:
-                        point_b_tag = next_cone.tag
+                        point_b_tag = next_cone.color
 
                     # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
                     # and use midpoint only if distance between edges is not too big
-                    if point_a_tag != point_b_tag and get_length(point_a, point_b) <= Exploration.edge_distance_threshold:
+                    if point_a_tag != point_b_tag and get_length(point_a, point_b) <= Exploration.EDGE_DISTANCE_THRESHOLD:
                         midpoint = get_midpoint(point_a, point_b)
                         midpoints.append(midpoint)
                         logging.info(
@@ -104,7 +112,12 @@ class Exploration:
                         # sort midpoints by distance => furthest midpoint comes last
                         midpoints.sort(key=lambda midpoint: get_length(
                             current_position, midpoint))
-                        #  set furthest midpoint as new car position
+
+                        # TODO smooth path
+
+                        # TODO densify smoothed path with additional points
+
+                        # TEMPORARY: set furthest midpoint as new car position
                         current_position = midpoints[-1]
 
         # Plotting
@@ -112,14 +125,18 @@ class Exploration:
             plt.ion()
 
             # Plot current cone received
-            if next_cone.tag == Tag.BLUE.value:
-                cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='blue')
-            if next_cone.tag == Tag.YELLOW.value:
-                cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='yellow')
-            if next_cone.tag == Tag.ORANGE.value:
-                cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='orange')
-            if next_cone.tag == Tag.BIG_ORANGE.value:
-                cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='red')
+            if next_cone.color == Cone.BLUE:
+                cone_plot = plt.plot(next_cone.location.x,
+                                     next_cone.location.y, 'o', c='blue')
+            if next_cone.color == Cone.YELLOW:
+                cone_plot = plt.plot(next_cone.location.x,
+                                     next_cone.location.y, 'o', c='yellow')
+            if next_cone.color == Cone.ORANGE_SMALL:
+                cone_plot = plt.plot(next_cone.location.x,
+                                     next_cone.location.y, 'o', c='orange')
+            if next_cone.color == Cone.ORANGE_BIG:
+                cone_plot = plt.plot(next_cone.location.x,
+                                     next_cone.location.y, 'o', c='red')
 
             # Plot triangulation and midpoints if happened
             if triangulated:
@@ -138,7 +155,7 @@ class Exploration:
             plt.show()
             plt.pause(0.0001)
 
-        return current_position
+        return [current_position, midpoints]
 
 
 def get_length(point_a, point_b):

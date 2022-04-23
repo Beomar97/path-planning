@@ -4,8 +4,8 @@ import rclpy
 from rclpy.node import Node
 
 from interfaces.msg import Coordinate
-from path_planning.model.tag import Tag
 from path_planning.algorithm.exploration.exploration import Exploration
+from path_planning.model.tag import Tag
 
 
 class PathPlanner(Node):
@@ -33,6 +33,7 @@ class PathPlanner(Node):
         self.yellow_cones = []
         self.orange_cones = []
         self.big_orange_cones = []
+        self.unknown_cones = []
 
         self.subscription = self.create_subscription(
             PathPlanner.msg_type,
@@ -54,12 +55,14 @@ class PathPlanner(Node):
             self.yellow_cones.append([next_cone.x, next_cone.y])
         elif next_cone.tag == Tag.ORANGE.value:
             self.orange_cones.append([next_cone.x, next_cone.y])
-        else:
+        elif next_cone.tag == Tag.BIG_ORANGE.value:
             self.big_orange_cones.append([next_cone.x, next_cone.y])
+        else:
+            self.unknown_cones.append([next_cone.x, next_cone.y])
 
         if len(self.blue_cones) + len(self.yellow_cones) >= PathPlanner.cones_threshold:
             new_current_position = Exploration.calculate_path(
-                self.current_position, next_cone, self.blue_cones, self.yellow_cones, PathPlanner.show_plot)
+                self.current_position, next_cone, self.blue_cones, self.yellow_cones, self.orange_cones, self.big_orange_cones, PathPlanner.show_plot)
 
             self.current_position = new_current_position
 

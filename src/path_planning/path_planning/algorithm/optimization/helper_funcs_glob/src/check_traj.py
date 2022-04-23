@@ -1,6 +1,9 @@
 import numpy as np
-from path_planning.algorithm.optimization.helper_funcs_glob.src.interp_track import interp_track
-from path_planning.algorithm.optimization.helper_funcs_glob.src.calc_min_bound_dists import calc_min_bound_dists
+
+from path_planning.algorithm.optimization.helper_funcs_glob.src.calc_min_bound_dists import \
+    calc_min_bound_dists
+from path_planning.algorithm.optimization.helper_funcs_glob.src.interp_track import \
+    interp_track
 
 
 def check_traj(reftrack: np.ndarray,

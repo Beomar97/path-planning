@@ -1,6 +1,7 @@
+import json
+
 import numpy as np
 from scipy.spatial import cKDTree
-import json
 
 
 class FrictionMapInterface:

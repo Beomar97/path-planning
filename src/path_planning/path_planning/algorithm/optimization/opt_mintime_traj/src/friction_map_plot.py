@@ -1,7 +1,8 @@
-import numpy as np
-import math
 import json
+import math
+
 import matplotlib.pyplot as plt
+import numpy as np
 from scipy.spatial import cKDTree
 
 

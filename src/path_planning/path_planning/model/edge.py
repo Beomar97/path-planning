@@ -1,6 +1,8 @@
 
 import math
+
 from interfaces.msg import Coordinate
+
 
 class Edge():
     

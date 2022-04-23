@@ -1,9 +1,12 @@
-import numpy as np
-from scipy.spatial.distance import cdist
-from scipy.spatial import Delaunay
-import matplotlib.pyplot as plt
-from path_planning.model.tag import Tag
 import copy
+
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import Delaunay
+from scipy.spatial.distance import cdist
+
+from path_planning.model.tag import Tag
+
 
 class Ultimate:
 

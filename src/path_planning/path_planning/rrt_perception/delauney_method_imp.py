@@ -1,13 +1,12 @@
 
-from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial import Delaunay
 
-
+from interfaces.msg import Coordinate
+from path_planning.model.edge import Edge
 #from .edge import Edge
 from path_planning.model.tag import Tag
-from path_planning.model.edge import Edge
-from interfaces.msg import Coordinate
 
 
 class Delauney_Method_Imp:

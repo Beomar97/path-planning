@@ -2,6 +2,7 @@ import math
 
 from interfaces.msg import Coordinate
 
+
 class ConeEdge():
     def __init__(self, coordinate1, coordinate2):
         self.x1 = coordinate1.x

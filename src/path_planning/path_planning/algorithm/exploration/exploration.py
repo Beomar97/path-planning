@@ -15,7 +15,7 @@ class Exploration:
     cones_threshold = 3
     edge_distance_threshold = 7
 
-    def calculate_path(current_position, next_cone, blue_cones, yellow_cones, show_plot=False):
+    def calculate_path(current_position, next_cone, blue_cones, yellow_cones, orange_cones, big_orange_cones, show_plot=False):
 
         # if only coordinates (x, y) are needed
         next_coordinate = [next_cone.x, next_cone.y]
@@ -36,6 +36,8 @@ class Exploration:
             cones = []
             cones.extend(blue_cones)
             cones.extend(yellow_cones)
+            cones.extend(orange_cones)
+            cones.extend(big_orange_cones)
 
             for cone in cones:
                 distance_to_cone = cdist([next_coordinate], [cone])[0][0]
@@ -72,27 +74,35 @@ class Exploration:
                         point_a_tag = Tag.BLUE.value
                     elif point_a in yellow_cones:
                         point_a_tag = Tag.YELLOW.value
+                    elif point_a in orange_cones:
+                        point_a_tag = Tag.ORANGE.value
+                    elif point_a in big_orange_cones:
+                        point_a_tag = Tag.BIG_ORANGE.value
                     else:
-                        point_a_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
+                        point_a_tag = next_cone.tag
 
                     if point_b in blue_cones:
                         point_b_tag = Tag.BLUE.value
                     elif point_b in yellow_cones:
                         point_b_tag = Tag.YELLOW.value
+                    elif point_b in orange_cones:
+                        point_b_tag = Tag.ORANGE.value
+                    elif point_b in big_orange_cones:
+                        point_b_tag = Tag.BIG_ORANGE.value
                     else:
-                        point_b_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
+                        point_b_tag = next_cone.tag
 
                     # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
                     # and use midpoint only if distance between edges is not too big
-                    if point_a_tag != point_b_tag and getLength(point_a, point_b) <= Exploration.edge_distance_threshold:
-                        midpoint = getMidpoint(point_a, point_b)
+                    if point_a_tag != point_b_tag and get_length(point_a, point_b) <= Exploration.edge_distance_threshold:
+                        midpoint = get_midpoint(point_a, point_b)
                         midpoints.append(midpoint)
                         logging.info(
                             f'Add as Midpoint: {midpoint}')
 
                     if midpoints:
                         # sort midpoints by distance => furthest midpoint comes last
-                        midpoints.sort(key=lambda midpoint: getLength(
+                        midpoints.sort(key=lambda midpoint: get_length(
                             current_position, midpoint))
                         #  set furthest midpoint as new car position
                         current_position = midpoints[-1]
@@ -131,9 +141,9 @@ class Exploration:
         return current_position
 
 
-def getLength(point_a, point_b):
+def get_length(point_a, point_b):
     return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
 
 
-def getMidpoint(point_a, point_b):
+def get_midpoint(point_a, point_b):
     return [(point_a[0] + point_b[0])/2, (point_a[1] + point_b[1])/2]

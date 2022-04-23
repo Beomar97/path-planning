@@ -1,9 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.spatial import Voronoi, voronoi_plot_2d
-from scipy.spatial import cKDTree
 import os.path
+
 import frictionmap
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import Voronoi, cKDTree, voronoi_plot_2d
 
 """
 Created by:

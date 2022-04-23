@@ -4,14 +4,18 @@ author: AtsushiSakai(@Atsushi_twi)
 with edits of Maxim Yastremsky(@MaxMagazin)
 """
 
-import random
-import math
 import copy
-import numpy as np
-import matplotlib.pyplot as plt
+import math
+import random
+import select
+import sys
+import termios
 import time
+import tty
 
-import sys, select, termios, tty
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 class RRT():
     """

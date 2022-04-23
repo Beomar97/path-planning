@@ -1,6 +1,7 @@
-import numpy as np
-import uuid
 import hashlib
+import uuid
+
+import numpy as np
 
 
 def export_traj_ltpl(file_paths: dict,

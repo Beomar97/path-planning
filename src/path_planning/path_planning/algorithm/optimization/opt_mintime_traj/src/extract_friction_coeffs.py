@@ -1,9 +1,11 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import math
-import trajectory_planning_helpers as tph
-from path_planning.algorithm.optimization.opt_mintime_traj.src.friction_map_interface import FrictionMapInterface
 
+import matplotlib.pyplot as plt
+import numpy as np
+import trajectory_planning_helpers as tph
+
+from path_planning.algorithm.optimization.opt_mintime_traj.src.friction_map_interface import \
+    FrictionMapInterface
 
 
 def extract_friction_coeffs(reftrack: np.ndarray,

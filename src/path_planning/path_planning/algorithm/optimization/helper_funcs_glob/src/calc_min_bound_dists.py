@@ -1,5 +1,6 @@
-import numpy as np
 import math
+
+import numpy as np
 
 
 def calc_min_bound_dists(trajectory: np.ndarray,

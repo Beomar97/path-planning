@@ -1,16 +1,25 @@
 import os
 import sys
 import time
-import numpy as np
+
 import casadi as ca
+import numpy as np
 import trajectory_planning_helpers as tph
-from path_planning.algorithm.optimization.opt_mintime_traj.src.approx_friction_map import approx_friction_map
-from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.EMachine import EMachineModel
-from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Battery import BattModel
-from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Inverter import InverterModel
-from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Radiators import RadiatorModel
-from path_planning.algorithm.optimization.opt_mintime_traj.src.export_mintime_solution import export_mintime_solution
-from path_planning.algorithm.optimization.opt_mintime_traj.src.result_plots_mintime import result_plots_mintime
+
+from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Battery import \
+    BattModel
+from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.EMachine import \
+    EMachineModel
+from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Inverter import \
+    InverterModel
+from path_planning.algorithm.optimization.opt_mintime_traj.powertrain_src.src.Radiators import \
+    RadiatorModel
+from path_planning.algorithm.optimization.opt_mintime_traj.src.approx_friction_map import \
+    approx_friction_map
+from path_planning.algorithm.optimization.opt_mintime_traj.src.export_mintime_solution import \
+    export_mintime_solution
+from path_planning.algorithm.optimization.opt_mintime_traj.src.result_plots_mintime import \
+    result_plots_mintime
 
 
 def opt_mintime(reftrack: np.ndarray,

@@ -3,6 +3,7 @@
 
 import numpy as np
 
+
 class Interpolate:
 
     def calculate_path(blue_cones, yellow_cones, poly_deg=3, n_points=100):

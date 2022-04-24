@@ -3,6 +3,7 @@
 
 import numpy as np
 
+
 class Densify:
 
     def calculate_path(blue_cones, yellow_cones):

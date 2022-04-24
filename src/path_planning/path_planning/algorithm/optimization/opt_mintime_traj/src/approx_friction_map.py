@@ -1,10 +1,12 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import trajectory_planning_helpers as tph
 from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LinearRegression
-from path_planning.algorithm.optimization.opt_mintime_traj.src.extract_friction_coeffs import extract_friction_coeffs
+from sklearn.pipeline import make_pipeline
+
+from path_planning.algorithm.optimization.opt_mintime_traj.src.extract_friction_coeffs import \
+    extract_friction_coeffs
 
 
 def approx_friction_map(reftrack: np.ndarray,

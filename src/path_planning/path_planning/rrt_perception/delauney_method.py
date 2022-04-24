@@ -1,11 +1,14 @@
 import time
-from path_planning.model.tag import Tag
-from scipy.spatial import Delaunay
+
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial import Delaunay
 
-from .edge import Edge
+from path_planning.model.tag import Tag
+
 from .ConeEdge import ConeEdge
+from .edge import Edge
+
 
 class Delauney_Method():
 

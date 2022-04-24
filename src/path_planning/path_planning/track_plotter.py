@@ -1,8 +1,11 @@
-import sys
-import os
 import csv
+import os
+import sys
+
 import matplotlib.pyplot as plt
+
 from path_planning.model.tag import Tag
+
 
 def main():
 

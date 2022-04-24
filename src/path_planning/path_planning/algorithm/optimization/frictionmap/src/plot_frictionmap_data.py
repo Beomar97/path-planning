@@ -1,10 +1,11 @@
-import numpy as np
-import math
-import matplotlib.pyplot as plt
-from scipy.spatial import cKDTree
-import os.path
 import json
+import math
+import os.path
+
 import frictionmap
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.spatial import cKDTree
 
 """
 Created by:

@@ -1,19 +1,28 @@
-import numpy as np
-import time
+import configparser
+import copy
 import json
 import os
-import trajectory_planning_helpers as tph
-import copy
+import time
+
 import matplotlib.pyplot as plt
-import configparser
+import numpy as np
 import pkg_resources
-from path_planning.algorithm.optimization.helper_funcs_glob.src.import_track import import_track
-from path_planning.algorithm.optimization.helper_funcs_glob.src.prep_track import prep_track
-from path_planning.algorithm.optimization.helper_funcs_glob.src.check_traj import check_traj
-from path_planning.algorithm.optimization.helper_funcs_glob.src.export_traj_race import export_traj_race
-from path_planning.algorithm.optimization.helper_funcs_glob.src.export_traj_ltpl import export_traj_ltpl
-from path_planning.algorithm.optimization.helper_funcs_glob.src.result_plots import result_plots
-from path_planning.algorithm.optimization.opt_mintime_traj.src.opt_mintime import opt_mintime
+import trajectory_planning_helpers as tph
+
+from path_planning.algorithm.optimization.helper_funcs_glob.src.check_traj import \
+    check_traj
+from path_planning.algorithm.optimization.helper_funcs_glob.src.export_traj_ltpl import \
+    export_traj_ltpl
+from path_planning.algorithm.optimization.helper_funcs_glob.src.export_traj_race import \
+    export_traj_race
+from path_planning.algorithm.optimization.helper_funcs_glob.src.import_track import \
+    import_track
+from path_planning.algorithm.optimization.helper_funcs_glob.src.prep_track import \
+    prep_track
+from path_planning.algorithm.optimization.helper_funcs_glob.src.result_plots import \
+    result_plots
+from path_planning.algorithm.optimization.opt_mintime_traj.src.opt_mintime import \
+    opt_mintime
 
 """
 Created by:

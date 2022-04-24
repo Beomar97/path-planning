@@ -1,6 +1,8 @@
-import numpy as np
 import math
+
+import numpy as np
 from scipy.spatial.distance import cdist
+
 
 class OptimizationInputTransformer:
 

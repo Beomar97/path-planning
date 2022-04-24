@@ -1,13 +1,15 @@
-import numpy as np
-import math
 import json
+import math
+import os.path
 import time
 from datetime import datetime
-import os.path
+
 import matplotlib.path as mplPath
+import numpy as np
 from scipy.spatial import cKDTree
-from path_planning.algorithm.optimization.frictionmap.src import reftrack_functions
-from path_planning.algorithm.optimization.frictionmap.src import plot_frictionmap_grid
+
+from path_planning.algorithm.optimization.frictionmap.src import (
+    plot_frictionmap_grid, reftrack_functions)
 
 """
 Created by:

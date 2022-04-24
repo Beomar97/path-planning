@@ -1,8 +1,9 @@
-import matplotlib.pyplot as plt
-from scipy.spatial import Delaunay
-from collections import defaultdict
 import math
+from collections import defaultdict
+
+import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial import Delaunay
 
 
 def main():

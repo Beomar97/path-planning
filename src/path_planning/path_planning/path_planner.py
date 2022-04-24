@@ -1,28 +1,28 @@
-import copy
-import itertools
 import logging
-import math
 
-import matplotlib.pyplot as plt
 import rclpy
+from fszhaw_msgs.msg import Cone, CurrentPosition, PlannedTrajectory
 from rclpy.node import Node
-from scipy.spatial import Delaunay
-from scipy.spatial.distance import cdist
 
-from interfaces.msg import Coordinate
-from path_planning.model.tag import Tag
+from path_planning.algorithm.exploration.exploration import Exploration
+from path_planning.model.mode import Mode
 
 
 class PathPlanner(Node):
 
-    msg_type = Coordinate
-    topic = 'map'
-    queue_size = 10
+    # set constants
+    SHOW_PLOT = True
+    EXPLORATION_VELOCITY = 5.0
 
-    cones_threshold = 3
-    position_distance_threshold = 20
-    cone_distance_threshold = 9
-    edge_distance_threshold = 7
+    # set class variables
+    mode = Mode.EXPLORATION
+    index = 0
+    current_position = [-5.3, 10.5]  # test value
+    blue_cones = []
+    yellow_cones = []
+    orange_cones = []
+    big_orange_cones = []
+    unknown_cones = []
 
     def __init__(self):
         super().__init__('path_planner')
@@ -31,157 +31,75 @@ class PathPlanner(Node):
         logging.basicConfig(level=logging.INFO,
                             format='%(levelname)s:%(message)s')
 
-        self.current_position = [-5.3, 10.5]  # test value
-        self.blue_cones = []
-        self.yellow_cones = []
-        self.orange_cones = []
-        self.big_orange_cones = []
+        # init cone subscriber
+        self.cone_subscription = self.create_subscription(
+            Cone, 'cone', self.__cone_listener_callback, 10)
+        self.cone_subscription  # prevent unused variable warning
 
-        self.subscription = self.create_subscription(
-            PathPlanner.msg_type,
-            PathPlanner.topic,
-            self.listener_callback,
-            PathPlanner.queue_size)
-        self.subscription  # prevent unused variable warning
+        # init current position subscriber
+        self.current_position_subscription = self.create_subscription(
+            CurrentPosition, 'current_position', self.__current_position_listener_callback, 10)
+        self.current_position_subscription  # prevent unused variable warning
 
-    def listener_callback(self, next_cone):
+        # init planned path publisher
+        self.planned_trajectory_publisher = self.create_publisher(
+            PlannedTrajectory, 'planned_trajectory', 10)
+
+    def __cone_listener_callback(self, next_cone):
         logging.info('-----------------------')
         logging.info(f'Current Position: {self.current_position}')
         logging.info(
-            f'Next Cone: Tag={next_cone.tag}, Coordinates=({next_cone.x}, {next_cone.y})')
+            f'Next Cone: Tag={next_cone.color}, Coordinates=({next_cone.location.x}, {next_cone.location.y})')
 
-        # add next cone to its corresponding list regarding it's tag
-        if next_cone.tag == Tag.BLUE.value:
-            self.blue_cones.append([next_cone.x, next_cone.y])
-        elif next_cone.tag == Tag.YELLOW.value:
-            self.yellow_cones.append([next_cone.x, next_cone.y])
-        elif next_cone.tag == Tag.ORANGE.value:
-            self.orange_cones.append([next_cone.x, next_cone.y])
+        # add next cone to its corresponding list regarding it's color
+        self.__add_to_received_cones(next_cone)
+
+        if self.mode == Mode.EXPLORATION:
+            output = Exploration.calculate_path(
+                self.current_position, next_cone, self.blue_cones, self.yellow_cones, self.orange_cones, self.big_orange_cones, PathPlanner.SHOW_PLOT)
+
+            # TEMPORARY set new current position
+            new_current_position = output[0]
+            self.__current_position_listener_callback(new_current_position)
+
+            # publish planned path
+            planned_path = output[1]
+            self.__publish_planned_path(planned_path)
+
+    def __publish_planned_path(self, planned_path):
+        for point in planned_path:
+            x = point[0]
+            y = point[1]
+            v = PathPlanner.EXPLORATION_VELOCITY
+
+            logging.info('-----------------------')
+            logging.info(
+                f'Publishing Planned Path: i:{self.index} x:{x} y:{y} v:{v}')
+            self.planned_trajectory_publisher.publish(PlannedTrajectory(
+                index=self.index, target_x=x, target_y=y, target_velocity=v))
+            self.index += 1
+
+    def __current_position_listener_callback(self, current_position):
+        logging.info('-----------------------')
+        logging.info(f'Set new Position: {current_position}')
+        self.current_position = current_position
+
+    def __add_to_received_cones(self, next_cone):
+        if next_cone.color == Cone.BLUE:
+            self.blue_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.YELLOW:
+            self.yellow_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.ORANGE_SMALL:
+            self.orange_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.ORANGE_BIG:
+            self.big_orange_cones.append(
+                [next_cone.location.x, next_cone.location.y])
         else:
-            self.big_orange_cones.append([next_cone.x, next_cone.y])
-
-        # if only coordinates (x, y) are needed
-        next_coordinate = [next_cone.x, next_cone.y]
-        # cones, which will be used for this iteration's triangulation
-        cones_to_triangulate = []
-        triangulated = False
-
-        if len(self.blue_cones) + len(self.yellow_cones) >= PathPlanner.cones_threshold:
-
-            # calculate distance from current position to the next cone
-            distance_to_next_cone = cdist(
-                [self.current_position], [next_coordinate])[0][0]
-            logging.info(f'Distance to Next Cone: {distance_to_next_cone}')
-
-            # check if distance from car to the next cone is too big
-            if distance_to_next_cone > PathPlanner.position_distance_threshold:
-                logging.info(
-                    'Over Threshold! Distance to Next Cone is too big...')
-            else:
-                # copy cones to new list, as
-                blue_cones = copy.deepcopy(self.blue_cones)
-                yellow_cones = copy.deepcopy(self.yellow_cones)
-                cones = []
-                cones.extend(blue_cones)
-                cones.extend(yellow_cones)
-
-                for cone in cones:
-                    distance_to_cone = cdist([next_coordinate], [cone])[0][0]
-
-                    if distance_to_cone <= PathPlanner.cone_distance_threshold:
-                        cones_to_triangulate.append(cone)
-                        logging.info(f'Add for Triangulation: {cone}')
-
-                if len(cones_to_triangulate) >= PathPlanner.cones_threshold:
-                    triangulation = Delaunay(cones_to_triangulate)
-                    triangulated = True
-
-                    edges = []
-                    for simplicy, i in itertools.product(triangulation.simplices, range(3)):
-                        j = i + 1  # a simplicy is always made of three points
-                        if j == 3:
-                            j = 0
-
-                        # don't want to add mirrored edges (e.g. 1<->2 and 2<->1)
-                        edge = [cones_to_triangulate[simplicy[i]],
-                                cones_to_triangulate[simplicy[j]]]
-                        edge_mirrored = [
-                            cones_to_triangulate[simplicy[j]], cones_to_triangulate[simplicy[i]]]
-                        if edge and edge_mirrored not in edges:
-                            edges.append(edge)
-
-                    midpoints = []
-                    for edge in edges:
-                        # An edge is made up of two points [a[x,y],b[x,y]]
-                        point_a = edge[0]
-                        point_b = edge[1]
-
-                        if point_a in self.blue_cones:
-                            point_a_tag = Tag.BLUE.value
-                        elif point_a in self.yellow_cones:
-                            point_a_tag = Tag.YELLOW.value
-                        else:
-                            point_a_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
-
-                        if point_b in self.blue_cones:
-                            point_b_tag = Tag.BLUE.value
-                        elif point_b in self.yellow_cones:
-                            point_b_tag = Tag.YELLOW.value
-                        else:
-                            point_b_tag = Tag.BLUE.value if next_cone.tag == Tag.BLUE.value else Tag.YELLOW.value
-
-                        # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
-                        # and use midpoint only if distance between edges is not too big
-                        if point_a_tag != point_b_tag and getLength(point_a, point_b) <= PathPlanner.edge_distance_threshold:
-                            midpoint = getMidpoint(point_a, point_b)
-                            midpoints.append(midpoint)
-                            logging.info(
-                                f'Add as Midpoint: {midpoint}')
-
-                        if midpoints:
-                            # sort midpoints by distance => furthest midpoint comes last
-                            midpoints.sort(key=lambda midpoint: getLength(
-                                self.current_position, midpoint))
-                            #  set furthest midpoint as new car position
-                            self.current_position = midpoints[-1]
-
-        # Plotting
-        plt.ion()
-
-        # Plot current cone received
-        if next_cone.tag == Tag.BLUE.value:
-            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='blue')
-        if next_cone.tag == Tag.YELLOW.value:
-            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='yellow')
-        if next_cone.tag == Tag.ORANGE.value:
-            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='orange')
-        if next_cone.tag == Tag.BIG_ORANGE.value:
-            cone_plot = plt.plot(next_cone.x, next_cone.y, 'o', c='red')
-
-        # Plot triangulation and midpoints if happened
-        if triangulated:
-            cones_to_triangulate_x, cones_to_triangulate_y = zip(
-                *cones_to_triangulate)
-            tri_plot = plt.triplot(cones_to_triangulate_x,
-                                   cones_to_triangulate_y, triangulation.simplices)
-            if midpoints:
-                midpoints_x, midpoints_y = zip(*midpoints)
-                mid_plot = plt.plot(midpoints_x, midpoints_y, 'o', c='red')
-
-        # Plot current position
-        pos_plot = plt.plot([self.current_position[0]], [
-            self.current_position[1]], 'o', c='black')
-
-        plt.show()
-        plt.pause(0.0001)
-
-
-def getLength(point_a, point_b):
-    return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
-
-
-def getMidpoint(point_a, point_b):
-    return [(point_a[0] + point_b[0])/2, (point_a[1] + point_b[1])/2]
+            self.unknown_cones.append(
+                [next_cone.location.x, next_cone.location.y])
 
 
 def main(args=None):

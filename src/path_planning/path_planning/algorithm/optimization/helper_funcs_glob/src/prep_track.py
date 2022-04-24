@@ -1,7 +1,8 @@
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import trajectory_planning_helpers as tph
-import sys
-import matplotlib.pyplot as plt
 
 
 def prep_track(reftrack_imp: np.ndarray,

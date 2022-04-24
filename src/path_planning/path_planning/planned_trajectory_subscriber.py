@@ -1,7 +1,6 @@
 import rclpy
-from rclpy.node import Node
-
 from fszhaw_msgs.msg import PlannedTrajectory
+from rclpy.node import Node
 
 
 class PlannedTrajectorySubscriber(Node):

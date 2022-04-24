@@ -1,13 +1,11 @@
 import logging
 
 import rclpy
+from fszhaw_msgs.msg import Cone, CurrentPosition, PlannedTrajectory
 from rclpy.node import Node
 
-from fszhaw_msgs.msg import Cone
-from fszhaw_msgs.msg import CurrentPosition
-from fszhaw_msgs.msg import PlannedTrajectory
-from path_planning.model.mode import Mode
 from path_planning.algorithm.exploration.exploration import Exploration
+from path_planning.model.mode import Mode
 
 
 class PathPlanner(Node):
@@ -16,6 +14,16 @@ class PathPlanner(Node):
     SHOW_PLOT = True
     EXPLORATION_VELOCITY = 5.0
 
+    # set class variables
+    mode = Mode.EXPLORATION
+    index = 0
+    current_position = [-5.3, 10.5]  # test value
+    blue_cones = []
+    yellow_cones = []
+    orange_cones = []
+    big_orange_cones = []
+    unknown_cones = []
+
     def __init__(self):
         super().__init__('path_planner')
 
@@ -23,38 +31,28 @@ class PathPlanner(Node):
         logging.basicConfig(level=logging.INFO,
                             format='%(levelname)s:%(message)s')
 
-        # set class variables
-        self.mode = Mode.EXPLORATION
-        self.index = 0
-        self.current_position = [-5.3, 10.5]  # test value
-        self.blue_cones = []
-        self.yellow_cones = []
-        self.orange_cones = []
-        self.big_orange_cones = []
-        self.unknown_cones = []
-
         # init cone subscriber
         self.cone_subscription = self.create_subscription(
-            Cone, 'cone', self.cone_listener_callback, 10)
+            Cone, 'cone', self.__cone_listener_callback, 10)
         self.cone_subscription  # prevent unused variable warning
 
         # init current position subscriber
         self.current_position_subscription = self.create_subscription(
-            CurrentPosition, 'current_position', self.current_position_listener_callback, 10)
+            CurrentPosition, 'current_position', self.__current_position_listener_callback, 10)
         self.current_position_subscription  # prevent unused variable warning
 
         # init planned path publisher
         self.planned_trajectory_publisher = self.create_publisher(
             PlannedTrajectory, 'planned_trajectory', 10)
 
-    def cone_listener_callback(self, next_cone):
+    def __cone_listener_callback(self, next_cone):
         logging.info('-----------------------')
         logging.info(f'Current Position: {self.current_position}')
         logging.info(
             f'Next Cone: Tag={next_cone.color}, Coordinates=({next_cone.location.x}, {next_cone.location.y})')
 
         # add next cone to its corresponding list regarding it's color
-        self.addToList(next_cone)
+        self.__add_to_received_cones(next_cone)
 
         if self.mode == Mode.EXPLORATION:
             output = Exploration.calculate_path(
@@ -62,21 +60,31 @@ class PathPlanner(Node):
 
             # TEMPORARY set new current position
             new_current_position = output[0]
-            self.current_position_listener_callback(new_current_position)
+            self.__current_position_listener_callback(new_current_position)
 
             # publish planned path
             planned_path = output[1]
-            for point in planned_path:
-                self.planned_trajectory_publisher.publish(PlannedTrajectory(
-                    index=self.index, target_x=point[0], target_y=point[1], target_velocity=PathPlanner.EXPLORATION_VELOCITY))
-                self.index += 1
+            self.__publish_planned_path(planned_path)
 
-    def current_position_listener_callback(self, current_position):
+    def __publish_planned_path(self, planned_path):
+        for point in planned_path:
+            x = point[0]
+            y = point[1]
+            v = PathPlanner.EXPLORATION_VELOCITY
+
+            logging.info('-----------------------')
+            logging.info(
+                f'Publishing Planned Path: i:{self.index} x:{x} y:{y} v:{v}')
+            self.planned_trajectory_publisher.publish(PlannedTrajectory(
+                index=self.index, target_x=x, target_y=y, target_velocity=v))
+            self.index += 1
+
+    def __current_position_listener_callback(self, current_position):
         logging.info('-----------------------')
         logging.info(f'Set new Position: {current_position}')
         self.current_position = current_position
 
-    def addToList(self, next_cone):
+    def __add_to_received_cones(self, next_cone):
         if next_cone.color == Cone.BLUE:
             self.blue_cones.append(
                 [next_cone.location.x, next_cone.location.y])

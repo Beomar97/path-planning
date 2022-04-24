@@ -3,9 +3,9 @@ import logging
 import math
 
 import matplotlib.pyplot as plt
+from fszhaw_msgs.msg import Cone
 from scipy.spatial import Delaunay
 from scipy.spatial.distance import cdist
-from fszhaw_msgs.msg import Cone
 
 
 class Exploration:
@@ -27,7 +27,7 @@ class Exploration:
         midpoints = []
 
         # check if enough cones for triangulation are received
-        if len(blue_cones) + len(yellow_cones) >= Exploration.CONES_THRESHOLD:
+        if len(blue_cones) + len(yellow_cones) < Exploration.CONES_THRESHOLD:
             logging.info(
                 f'Not enough cones! At least {Exploration.CONES_THRESHOLD} cones are needed...')
             return [current_position, midpoints]
@@ -35,7 +35,7 @@ class Exploration:
         # calculate distance from current position to the next cone
         distance_to_next_cone = cdist(
             [current_position], [next_coordinate])[0][0]
-        logging.info(f'Distance to Next Cone: {distance_to_next_cone}')
+        logging.debug(f'Distance to Next Cone: {distance_to_next_cone}')
 
         # check if distance from car to the next cone is too big
         if distance_to_next_cone > Exploration.POSITION_DISTANCE_THRESHOLD:
@@ -53,9 +53,9 @@ class Exploration:
 
                 if distance_to_cone <= Exploration.CONE_DISTANCE_THRESHOLD:
                     cones_to_triangulate.append(cone)
-                    logging.info(f'Add for Triangulation: {cone}')
+                    logging.debug(f'Add for Triangulation: {cone}')
 
-            if len(cones_to_triangulate) >= Exploration.cones_threshold:
+            if len(cones_to_triangulate) >= Exploration.CONES_THRESHOLD:
                 triangulation = Delaunay(cones_to_triangulate)
                 triangulated = True
 
@@ -105,7 +105,7 @@ class Exploration:
                     if point_a_tag != point_b_tag and get_length(point_a, point_b) <= Exploration.EDGE_DISTANCE_THRESHOLD:
                         midpoint = get_midpoint(point_a, point_b)
                         midpoints.append(midpoint)
-                        logging.info(
+                        logging.debug(
                             f'Add as Midpoint: {midpoint}')
 
                     if midpoints:

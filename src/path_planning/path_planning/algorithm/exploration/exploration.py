@@ -26,8 +26,12 @@ class Exploration:
         # midpoints of the planned path
         midpoints = []
 
+        # number of in total received cones
+        length_cones = len(blue_cones) + len(yellow_cones) + \
+            len(orange_cones) + len(big_orange_cones)
+
         # check if enough cones for triangulation are received
-        if len(blue_cones) + len(yellow_cones) < Exploration.CONES_THRESHOLD:
+        if length_cones < Exploration.CONES_THRESHOLD:
             logging.info(
                 f'Not enough cones! At least {Exploration.CONES_THRESHOLD} cones are needed...')
             return [current_position, midpoints]
@@ -142,11 +146,12 @@ class Exploration:
             if triangulated:
                 cones_to_triangulate_x, cones_to_triangulate_y = zip(
                     *cones_to_triangulate)
-                tri_plot = plt.triplot(cones_to_triangulate_x,
-                                       cones_to_triangulate_y, triangulation.simplices)
+                tri_plot = plt.triplot(
+                    cones_to_triangulate_x, cones_to_triangulate_y, triangulation.simplices)
                 if midpoints:
                     midpoints_x, midpoints_y = zip(*midpoints)
-                    mid_plot = plt.plot(midpoints_x, midpoints_y, 'o', c='red')
+                    mid_plot = plt.plot(
+                        midpoints_x, midpoints_y, 'o', c='green')
 
             # Plot current position
             pos_plot = plt.plot([current_position[0]], [

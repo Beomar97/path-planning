@@ -17,7 +17,7 @@ class PathPlanner(Node):
     # set class variables
     mode = Mode.EXPLORATION
     index = 0
-    current_position = [-5.3, 10.5]  # test value
+    current_position = [-13.0, 10.3]  # test start value
     blue_cones = []
     yellow_cones = []
     orange_cones = []

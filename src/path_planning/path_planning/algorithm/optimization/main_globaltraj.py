@@ -52,8 +52,8 @@ def optimize_path(
                  "raceline": True,                  # plot optimized path
                  # plot imported bounds (analyze difference to interpolated bounds)
                  "imported_bounds": False,
-                 "raceline_curv": True,             # plot curvature profile of optimized path
-                 "racetraj_vel": True,              # plot velocity profile
+                 "raceline_curv": False,             # plot curvature profile of optimized path
+                 "racetraj_vel": False,              # plot velocity profile
                  "racetraj_vel_3d": False,          # plot 3D velocity profile above raceline
                  # [m] vertical lines stepsize in 3D velocity profile plot
                  "racetraj_vel_3d_stepsize": 1.0,
@@ -129,8 +129,8 @@ def optimize_path(
     file_paths["module"] = os.getcwd() + '/src/path_planning/resource/'
 
     # read dependencies from requirements.txt
-    #requirements_path = os.path.join(file_paths["module"], 'requirements.txt')
-    #dependencies = []
+    # requirements_path = os.path.join(file_paths["module"], 'requirements.txt')
+    # dependencies = []
 
     # with open(requirements_path, 'r') as fh:
     #    line = fh.readline()

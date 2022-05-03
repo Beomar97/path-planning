@@ -8,6 +8,17 @@ class TrackConfig:
     Holds the corresponding configurations of the given track, which will be used in the Path Planner.
     """
 
+    class Acceleration:
+        """Configuration for track 'Acceleration' (acceleration.csv)."""
+
+        START_CURRENT_POSITION = CurrentPosition(
+            vehicle_position_x=-49.95, vehicle_position_y=0.0, yaw=0.0, vehicle_velocity=0.0)
+        POSITION_DISTANCE_THRESHOLD = 20
+        CONE_DISTANCE_THRESHOLD = 6
+        CONES_THRESHOLD = 3
+        EDGE_DISTANCE_THRESHOLD = 5
+        NR_OF_CONES = 45
+
     class SmallTrack:
         """Configuration for track 'SmallTrack' (small_track.csv)."""
 

@@ -8,9 +8,9 @@ from rclpy.node import Node
 
 from path_planning.algorithm.exploration.exploration import Exploration
 from path_planning.algorithm.optimization.main_globaltraj import optimize_path
+from path_planning.model.coordinate import Coordinate
 from path_planning.model.mode import Mode
-from path_planning.path_planning.model.coordinate import Coordinate
-from path_planning.path_planning.model.racetrajectory import RaceTrajectory
+from path_planning.model.racetrajectory import RaceTrajectory
 from path_planning.track_config import TrackConfig
 from path_planning.util.optimization_input_transformer import \
     OptimizationInputTransformer
@@ -27,7 +27,7 @@ class PathPlanner(Node):
     # testing config
     PROD = False
     LOG_LEVEL = logging.INFO
-    SHOW_PLOT = False
+    SHOW_PLOT = True
     MOCK_CURRENT_POSITION = True
     TRACK_CONFIG = TrackConfig.SmallTrack
 
@@ -79,6 +79,9 @@ class PathPlanner(Node):
         # init planned path publisher
         self.planned_trajectory_publisher = self.create_publisher(
             PlannedTrajectory, 'planned_trajectory', 10)
+
+        logging.info('-----------------------')
+        logging.info('Path Planner initialized!')
 
     def __current_position_listener_callback(self, current_position: CurrentPosition):
         """

@@ -46,7 +46,8 @@ def prep_track(reftrack_imp: np.ndarray,
                              debug=debug)
 
     # calculate splines
-    refpath_interp_cl = np.vstack((reftrack_interp[:, :2], reftrack_interp[0, :2]))
+    refpath_interp_cl = np.vstack(
+        (reftrack_interp[:, :2], reftrack_interp[0, :2]))
 
     coeffs_x_interp, coeffs_y_interp, a_interp, normvec_normalized_interp = tph.calc_splines.\
         calc_splines(path=refpath_interp_cl)
@@ -60,8 +61,10 @@ def prep_track(reftrack_imp: np.ndarray,
                                                                          horizon=10)
 
     if normals_crossing:
-        bound_1_tmp = reftrack_interp[:, :2] + normvec_normalized_interp * np.expand_dims(reftrack_interp[:, 2], axis=1)
-        bound_2_tmp = reftrack_interp[:, :2] - normvec_normalized_interp * np.expand_dims(reftrack_interp[:, 3], axis=1)
+        bound_1_tmp = reftrack_interp[:, :2] + normvec_normalized_interp * \
+            np.expand_dims(reftrack_interp[:, 2], axis=1)
+        bound_2_tmp = reftrack_interp[:, :2] - normvec_normalized_interp * \
+            np.expand_dims(reftrack_interp[:, 3], axis=1)
 
         plt.figure()
 
@@ -79,7 +82,8 @@ def prep_track(reftrack_imp: np.ndarray,
 
         plt.show()
 
-        raise IOError("At least two spline normals are crossed, check input or increase smoothing factor!")
+        raise IOError(
+            "At least two spline normals are crossed, check input or increase smoothing factor!")
 
     # ------------------------------------------------------------------------------------------------------------------
     # ENFORCE MINIMUM TRACK WIDTH (INFLATE TIGHTER SECTIONS UNTIL REACHED) ---------------------------------------------

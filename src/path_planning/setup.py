@@ -20,14 +20,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'testing = path_planning._testing.testing_transformer:main',
-            'track_plotter = path_planning.track_plotter:main',
             'path_planner = path_planning.path_planner:main',
-            'cone_publisher = path_planning.cone_publisher:main',
-            'planned_trajectory_subscriber = path_planning.planned_trajectory_subscriber:main',
-            'coordinate_publisher = path_planning.rrt_perception.coordinate_publisher:main',
-            'rrt_perception = path_planning.rrt_perception.rrt_perception:main',
-            'main_globaltraj = path_planning.algorithm.optimization.main_globaltraj:optimize'
+            'cone_publisher = path_planning.mock.cone_publisher:main',
+            'planned_trajectory_subscriber = path_planning.mock.planned_trajectory_subscriber:main',
+            'track_plotter = path_planning.util.track_plotter:main',
+            'main_globaltraj = path_planning.algorithm.optimization.main_globaltraj:optimize',
+            'testing = path_planning._testing.testing_transformer:main'
         ],
     },
 )

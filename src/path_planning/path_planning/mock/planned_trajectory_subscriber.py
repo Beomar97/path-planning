@@ -4,8 +4,14 @@ from rclpy.node import Node
 
 
 class PlannedTrajectorySubscriber(Node):
+    """
+    Planned Trajectory Subscriber.
+
+    Subscribes on the planned trajectory topic.
+    """
 
     def __init__(self):
+        """Initialize the subscriber."""
         super().__init__('planned_trajectory_subscriber')
         self.subscription = self.create_subscription(
             PlannedTrajectory,
@@ -15,11 +21,26 @@ class PlannedTrajectorySubscriber(Node):
         self.subscription  # prevent unused variable warning
 
     def listener_callback(self, planned_trajectory):
+        """
+        Execute callback function.
+
+        :param planned_trajectory: The receiving planned trajectory.
+
+        """
         self.get_logger().info(
-            f'Received: i:{planned_trajectory.index} x:{planned_trajectory.target_x} y:{planned_trajectory.target_y} v:{planned_trajectory.target_velocity}')
+            f'Received: i:{planned_trajectory.index} \
+                x:{planned_trajectory.target_x} \
+                y:{planned_trajectory.target_y} \
+                v:{planned_trajectory.target_velocity}')
 
 
 def main(args=None):
+    """
+    Run the subscriber.
+
+    :param args: Additional arguments (Default value = None).
+
+    """
     rclpy.init(args=args)
 
     planned_trajectory_subscriber = PlannedTrajectorySubscriber()

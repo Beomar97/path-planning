@@ -2,6 +2,12 @@ from enum import Enum
 
 
 class Tag(Enum):
+    """
+    Cone Tag.
+
+    Different tags (color) a cone can have.
+    """
+
     BLUE = 'blue'
     YELLOW = 'yellow'
     ORANGE = 'orange'

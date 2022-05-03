@@ -3,12 +3,15 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
-
 from path_planning.model.tag import Tag
 
 
 def main():
+    """
+    Plot a track.
 
+    Plot the given track displaying all blue, yellow, orange and big orange cones.
+    """
     cones = []
     blue_cones = []
     yellow_cones = []
@@ -47,7 +50,7 @@ def main():
     if big_orange_cones:
         big_orange_cones_x, big_orange_cones_y = zip(*big_orange_cones)
         plt.plot(big_orange_cones_x, big_orange_cones_y, 'o', c='red')
-    
+
     if car_start:
         plt.plot(car_start[0], car_start[1], 'o', c='black')
 

@@ -14,7 +14,6 @@ class ConePublisher(Node):
 
     # config
     LAPS = 1  # how many laps to publish
-    CSV = True  # load data from csv or simulation tool by subscriber
 
     # set constants
     MSG_TYPE = Cone
@@ -23,6 +22,7 @@ class ConePublisher(Node):
     TIMER_PERIOD = 0.2  # seconds
 
     # init class variables
+    is_acceleration = False
     cones = []
     blue_cones = []
     yellow_cones = []
@@ -42,8 +42,12 @@ class ConePublisher(Node):
     def __init__(self):
         super().__init__("cone_publisher")
 
-        if self.CSV:
+        self.is_acceleration = sys.argv[1].startswith("acceleration")
+
+        if len(sys.argv) >= 2:
             # load track information from csv
+            self.get_logger().info(
+                f'Loading track from csv file {sys.argv[1]}')
             with open(
                 os.getcwd() + "/src/path_planning/resource/maps/" + sys.argv[1]
             ) as csv_file:
@@ -73,6 +77,8 @@ class ConePublisher(Node):
                             [row["tag"], float(row["x"]), float(row["y"])]
                         )
         else:
+            self.get_logger().info(
+                f'Receiving track from Simulation Tool at topic testing_only/track')
             self.track_subscription = self.create_subscription(
                 Track,
                 'testing_only/track',
@@ -124,23 +130,42 @@ class ConePublisher(Node):
     def timer_callback(self):
         if self.i < len(self.cones):
 
-            if self.i < len(self.big_orange_cones):
-                self.__publish_cone(self.big_orange_cones[self.bo_i])
-                self.bo_i += 1
-            elif self.i % 2 == 0:
-                if self.b_i < len(self.blue_cones):
-                    self.__publish_cone(self.blue_cones[self.b_i])
-                    self.b_i += 1
+            if self.is_acceleration:
+                if self.i < 4:
+                    self.__publish_cone(self.big_orange_cones[self.bo_i])
+                    self.bo_i += 1
+                elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i < len(self.big_orange_cones):
+                    self.__publish_cone(self.big_orange_cones[self.bo_i])
+                    self.bo_i += 1
+                elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i >= len(self.big_orange_cones) and self.o_i < len(self.orange_cones):
+                    self.__publish_cone(self.orange_cones[self.o_i])
+                    self.o_i += 1
+                elif self.i % 2 == 0:
+                    if self.b_i < len(self.blue_cones):
+                        self.__publish_cone(self.blue_cones[self.b_i])
+                        self.b_i += 1
                 else:
-                    self.__publish_cone(self.yellow_cones[self.y_i])
-                    self.y_i += 1
+                    if self.y_i < len(self.yellow_cones):
+                        self.__publish_cone(self.yellow_cones[self.y_i])
+                        self.y_i += 1
             else:
-                if self.y_i < len(self.yellow_cones):
-                    self.__publish_cone(self.yellow_cones[self.y_i])
-                    self.y_i += 1
+                if self.i < len(self.big_orange_cones):
+                    self.__publish_cone(self.big_orange_cones[self.bo_i])
+                    self.bo_i += 1
+                elif self.i % 2 == 0:
+                    if self.b_i < len(self.blue_cones):
+                        self.__publish_cone(self.blue_cones[self.b_i])
+                        self.b_i += 1
+                    else:
+                        self.__publish_cone(self.yellow_cones[self.y_i])
+                        self.y_i += 1
                 else:
-                    self.__publish_cone(self.blue_cones[self.b_i])
-                    self.b_i += 1
+                    if self.y_i < len(self.yellow_cones):
+                        self.__publish_cone(self.yellow_cones[self.y_i])
+                        self.y_i += 1
+                    else:
+                        self.__publish_cone(self.blue_cones[self.b_i])
+                        self.b_i += 1
 
             self.i += 1
 

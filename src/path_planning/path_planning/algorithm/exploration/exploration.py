@@ -1,7 +1,7 @@
 import itertools
 import logging
 import math
-from typing import List
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,7 +31,7 @@ class Exploration:
         orange_cones: List[Coordinate],
         big_orange_cones: List[Coordinate],
         track_config, show_plot: bool = False
-    ):
+    ) -> Tuple[float, List[Coordinate]]:
         """
         Calculate the path for the vehicle given the current position, the receiving cone and the past received cones.
 
@@ -127,6 +127,12 @@ class Exploration:
                         point_b_color = determine_color(
                             point_b, next_cone, blue_cones, yellow_cones, orange_cones, big_orange_cones)
 
+                        # don't want to use cones of other colors except of blue and yellow for midpoints
+                        if point_a_color != Cone.BLUE and point_a_color != Cone.YELLOW:
+                            point_a_color = Cone.UNKNOWN
+                        if point_b_color != Cone.BLUE and point_b_color != Cone.YELLOW:
+                            point_b_color = Cone.UNKNOWN
+
                         # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
                         # and use midpoint only if distance between edges is not too big
                         if point_a_color != Cone.UNKNOWN and point_b_color != Cone.UNKNOWN and point_a_color != point_b_color and get_distance(point_a, point_b) <= EDGE_DISTANCE_THRESHOLD:
@@ -195,36 +201,52 @@ class Exploration:
         return current_position, planned_path
 
 
-def get_distance(point_a, point_b):
+def get_distance(
+    point_a: float,
+    point_b: float
+) -> float:
     """
     Get distance between two points.
 
-    :param point_a: point a.
-    :param point_b: point b.
+    :param point_a: Point a.
+    :param point_b: Point b.
+    :returns: Distance between point a and point b.
 
     """
     return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
 
 
-def get_midpoint(point_a, point_b):
+def get_midpoint(
+    point_a: float,
+    point_b: float
+) -> float:
     """
     Get the midpoint between two points.
 
-    :param point_a: point a.
-    :param point_b: point b.
+    :param point_a: Point a.
+    :param point_b: Point b.
+    :returns: Midpoint between point a and point b.
 
     """
     return [(point_a[0] + point_b[0]) / 2, (point_a[1] + point_b[1]) / 2]
 
 
-def determine_color(point, next_cone, blue_cones, yellow_cones, orange_cones, big_orange_cones):
+def determine_color(
+    point: Coordinate,
+    next_cone: Cone,
+    blue_cones: List[Coordinate],
+    yellow_cones: List[Coordinate],
+    orange_cones: List[Coordinate],
+    big_orange_cones: List[Coordinate]
+) -> int:
     """
-    Determine the color (tag) of a given point, blue, yellow or else unknown.
+    Determine the color (tag) of a given point.
 
     :param point: Point to determine its color.
     :param next_cone: The current received cone.
     :param blue_cones: All previously received blue cones.
     :param yellow_cones: All previously received yellow cones.
+    :returns: Color of the cone (blue, yellow, orange or big orange).
 
     """
     if point in blue_cones:
@@ -238,7 +260,4 @@ def determine_color(point, next_cone, blue_cones, yellow_cones, orange_cones, bi
     else:
         point_color = next_cone.color
 
-    if point_color == Cone.BLUE or point_color == Cone.YELLOW:
-        return point_color
-    else:
-        return Cone.UNKNOWN
+    return point_color

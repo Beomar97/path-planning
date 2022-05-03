@@ -1,6 +1,4 @@
 
-from numpy import float64
-
 
 class Coordinate:
     """
@@ -9,7 +7,7 @@ class Coordinate:
     A Coordinate represented by an x- and a y-value.
     """
 
-    def __init__(self, x: float64, y: float64):
+    def __init__(self, x: float, y: float):
         """
         Create a Coordinate.
 

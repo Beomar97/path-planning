@@ -1,12 +1,11 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import Delaunay
-
 from interfaces.msg import Coordinate
-from path_planning.model.edge import Edge
-#from .edge import Edge
+# from .edge import Edge
 from path_planning.model.tag import Tag
+from path_planning.path_planning._testing.edge import Edge
+from scipy.spatial import Delaunay
 
 
 class Delauney_Method_Imp:
@@ -20,7 +19,7 @@ class Delauney_Method_Imp:
 
         self.carCoordinate = ""
 
-    def delauney_method_improved(self,coneCoordinate: Coordinate, carCoordinate: Coordinate):
+    def delauney_method_improved(self, coneCoordinate: Coordinate, carCoordinate: Coordinate):
         self.carCoordinate = carCoordinate
         front_cones = []
         middle_points = []
@@ -33,108 +32,116 @@ class Delauney_Method_Imp:
             plt.plot(coneCoordinate.x, coneCoordinate.y, 'o', c='yellow')
 
         if len(self.blue_cones) > 1 and len(self.yellow_cones) > 1:
-            #print(carCoordinate)
-            
-            print("Car: x: " + str(carCoordinate.x) + ", y: " + str(carCoordinate.y))
-            carDistanceToCone = self.coordinate_distance(coneCoordinate,self.carCoordinate)
-            print("Cone: tag: " + coneCoordinate.tag + ", x: " + str(coneCoordinate.x) + ", y: " + str(coneCoordinate.y) + ", distance: " + str(carDistanceToCone))
+            # print(carCoordinate)
+
+            print("Car: x: " + str(carCoordinate.x) +
+                  ", y: " + str(carCoordinate.y))
+            carDistanceToCone = self.coordinate_distance(
+                coneCoordinate, self.carCoordinate)
+            print("Cone: tag: " + coneCoordinate.tag + ", x: " + str(coneCoordinate.x) +
+                  ", y: " + str(coneCoordinate.y) + ", distance: " + str(carDistanceToCone))
             if self.treshholdCar > carDistanceToCone:
                 print("Under treshhold")
                 distanceToLastOpposite = ""
                 if coneCoordinate.tag == Tag.BLUE.value:
-                    distanceToLastOpposite = Edge(coneCoordinate,self.yellow_cones[len(self.yellow_cones)-1]).length()
-                    print("Distance from: " + coneCoordinate.tag + " to last yellow cone: " + str(distanceToLastOpposite))
+                    distanceToLastOpposite = Edge(
+                        coneCoordinate, self.yellow_cones[len(self.yellow_cones)-1]).length()
+                    print("Distance from: " + coneCoordinate.tag +
+                          " to last yellow cone: " + str(distanceToLastOpposite))
                     if distanceToLastOpposite < self.treshholdOtherCone:
-                        front_cones.append(self.blue_cones[len(self.blue_cones)-2])
-                        front_cones.append(self.blue_cones[len(self.blue_cones)-1])
+                        front_cones.append(
+                            self.blue_cones[len(self.blue_cones)-2])
+                        front_cones.append(
+                            self.blue_cones[len(self.blue_cones)-1])
 
-                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-2])
-                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-1])
+                        front_cones.append(
+                            self.yellow_cones[len(self.yellow_cones)-2])
+                        front_cones.append(
+                            self.yellow_cones[len(self.yellow_cones)-1])
 
                         delauneyEdges = self.getDelaunayEdges(front_cones)
 
-                        #print(delauneyEdges)
+                        # print(delauneyEdges)
                         for edge in delauneyEdges:
                             middle_point = edge.getMiddlePoint()
                             middle_points.append(middle_point)
-                            plt.plot(middle_point.x, middle_point.y, 'o', c='red')
-
+                            plt.plot(middle_point.x,
+                                     middle_point.y, 'o', c='red')
 
                 elif coneCoordinate.tag == Tag.YELLOW.value:
-                    distanceToLastOpposite = Edge(coneCoordinate,self.blue_cones[len(self.blue_cones)-1]).length()
-                    print("Distance from: " + coneCoordinate.tag + " to last blue cone: " + str(distanceToLastOpposite))
+                    distanceToLastOpposite = Edge(
+                        coneCoordinate, self.blue_cones[len(self.blue_cones)-1]).length()
+                    print("Distance from: " + coneCoordinate.tag +
+                          " to last blue cone: " + str(distanceToLastOpposite))
 
                     if distanceToLastOpposite < self.treshholdOtherCone:
-                        front_cones.append(self.blue_cones[len(self.blue_cones)-2])
-                        front_cones.append(self.blue_cones[len(self.blue_cones)-1])
-                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-2])
-                        front_cones.append(self.yellow_cones[len(self.yellow_cones)-1])
+                        front_cones.append(
+                            self.blue_cones[len(self.blue_cones)-2])
+                        front_cones.append(
+                            self.blue_cones[len(self.blue_cones)-1])
+                        front_cones.append(
+                            self.yellow_cones[len(self.yellow_cones)-2])
+                        front_cones.append(
+                            self.yellow_cones[len(self.yellow_cones)-1])
 
                         delauneyEdges = self.getDelaunayEdges(front_cones)
 
-                        #print(delauneyEdges)
+                        # print(delauneyEdges)
                         for edge in delauneyEdges:
                             middle_point = edge.getMiddlePoint()
                             middle_points.append(middle_point)
-                            plt.plot(middle_point.x, middle_point.y, 'o', c='red')
-                    
-
-        
-        
+                            plt.plot(middle_point.x,
+                                     middle_point.y, 'o', c='red')
 
         if len(self.blue_cones) == 2 and len(self.yellow_cones) == 2:
             #yellowCone = self.yellow_cones[0]
-            #print(yellowCone)
-            #front_cones.append(yellowCone)
-#
-            #for blueCone in self.blue_cones:
+            # print(yellowCone)
+            # front_cones.append(yellowCone)
+            #
+            # for blueCone in self.blue_cones:
             #    distance = self.coordinate_distance(yellowCone,blueCone)
-#
+            #
             #    if distance < 7:
             #        front_cones.append(blueCone)
-#
+            #
             #    print("distance: " + str(distance))
-#
-            #if len(front_cones) == 3:
+            #
+            # if len(front_cones) == 3:
             #    front_cones.append(self.yellow_cones[1])
-            #else:
+            # else:
             #    front_cones.append(self.blue_cones[2])
 
-            
             front_cones.append(self.blue_cones[0])
             front_cones.append(self.blue_cones[1])
             front_cones.append(self.yellow_cones[0])
             front_cones.append(self.yellow_cones[1])
-                
-            
+
             delauneyEdges = self.getDelaunayEdges(front_cones)
 
-            #print(delauneyEdges)
+            # print(delauneyEdges)
             for edge in delauneyEdges:
                 middle_point = edge.getMiddlePoint()
                 middle_points.append(middle_point)
                 plt.plot(middle_point.x, middle_point.y, 'o', c='red')
 
         if len(middle_points) > 0 and carCoordinate != None:
-            middle_points.sort(key=lambda middle_point: Edge(middle_point,carCoordinate).length())
-            
+            middle_points.sort(key=lambda middle_point: Edge(
+                middle_point, carCoordinate).length())
+
         return middle_points
-        
 
-    #def quick_sort_middle_points(self,middle_points,carCoordinate):
-        
+    # def quick_sort_middle_points(self,middle_points,carCoordinate):
 
-
-    def coordinate_distance(self,coordinate1,coordinate2):
-        edge = Edge(coordinate1,coordinate2)
+    def coordinate_distance(self, coordinate1, coordinate2):
+        edge = Edge(coordinate1, coordinate2)
 
         return edge.length()
 
     def getDelaunayEdges(self, frontCones):
-        if len(frontCones) < 3: # no sense to calculate delaunay
+        if len(frontCones) < 3:  # no sense to calculate delaunay
             return
         frontConesLength = len(frontCones)
-        
+
         conePointsDel = np.zeros((len(frontCones), 2))
         conePoints = np.zeros((len(frontCones), 3))
 
@@ -148,7 +155,7 @@ class Delauney_Method_Imp:
 
         tri = Delaunay(conePointsDel)
 
-        plt.triplot(conePointsDel[:,0], conePointsDel[:,1], tri.simplices)
+        plt.triplot(conePointsDel[:, 0], conePointsDel[:, 1], tri.simplices)
 
         delaunayEdges = []
         for simp in tri.simplices:
@@ -157,7 +164,7 @@ class Delauney_Method_Imp:
                 j = i + 1
                 if j == frontConesLength-1:
                     j = 0
-                
+
                 cone1 = Coordinate()
                 cone1.x = conePoints[simp[i]][0]
                 cone1.y = conePoints[simp[i]][1]
@@ -174,13 +181,14 @@ class Delauney_Method_Imp:
                 elif conePoints[simp[j]][2] == 1:
                     cone2.tag = Tag.BLUE.value
 
-                edge = Edge(cone1,cone2)
+                edge = Edge(cone1, cone2)
                 #edge = Edge(conePoints[simp[i]][0], conePoints[simp[i]][1], conePoints[simp[j]][0], conePoints[simp[j]][1])
 
                 if edge not in delaunayEdges and cone1.tag != cone2.tag:
                     delaunayEdges.append(edge)
 
         return delaunayEdges
+
 
 """
     def delauney_method_improved(self,coordinate,blue_cones,yellow_cones):
@@ -251,6 +259,7 @@ class Delauney_Method_Imp:
 
 
 """
+
 
 class Cone():
     def __init__(self, coordinate):

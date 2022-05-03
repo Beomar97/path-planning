@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 import matplotlib.pyplot as plt
 import rclpy
@@ -8,6 +9,8 @@ from rclpy.node import Node
 from path_planning.algorithm.exploration.exploration import Exploration
 from path_planning.algorithm.optimization.main_globaltraj import optimize_path
 from path_planning.model.mode import Mode
+from path_planning.path_planning.model.coordinate import Coordinate
+from path_planning.path_planning.model.racetrajectory import RaceTrajectory
 from path_planning.track_config import TrackConfig
 from path_planning.util.optimization_input_transformer import \
     OptimizationInputTransformer
@@ -24,9 +27,9 @@ class PathPlanner(Node):
     # testing config
     PROD = False
     LOG_LEVEL = logging.INFO
-    SHOW_PLOT = True
+    SHOW_PLOT = False
     MOCK_CURRENT_POSITION = True
-    TRACK_CONFIG = TrackConfig.Rand
+    TRACK_CONFIG = TrackConfig.SmallTrack
 
     # set constants
     EXPLORATION_VELOCITY = 5.0
@@ -77,7 +80,7 @@ class PathPlanner(Node):
         self.planned_trajectory_publisher = self.create_publisher(
             PlannedTrajectory, 'planned_trajectory', 10)
 
-    def __current_position_listener_callback(self, current_position):
+    def __current_position_listener_callback(self, current_position: CurrentPosition):
         """
         Execute callback function when receiving an update for the current position.
 
@@ -88,7 +91,7 @@ class PathPlanner(Node):
             f'Set new Position: x:{current_position.vehicle_position_x} y:{current_position.vehicle_position_y}')
         self.current_position = current_position
 
-    def __cone_listener_callback(self, next_cone):
+    def __cone_listener_callback(self, next_cone: Cone):
         """
         Execute callback function when receiving the next cone.
 
@@ -131,9 +134,11 @@ class PathPlanner(Node):
 
             reftrack = OptimizationInputTransformer.transform(
                 self.blue_cones, self.yellow_cones, self.orange_cones, self.big_orange_cones, self.calculated_path)
-            optimize_path(reftrack)
+            optimized_path = optimize_path(
+                reftrack, PathPlanner.SHOW_PLOT)
+            self.__publish_optimized_path(optimized_path)
 
-    def __publish_planned_path(self, planned_path):
+    def __publish_planned_path(self, planned_path: List[Coordinate]):
         """
         Publish the planned path.
 
@@ -151,7 +156,25 @@ class PathPlanner(Node):
                 index=self.index, target_x=x, target_y=y, target_velocity=v))
             self.index += 1
 
-    def __add_to_received_cones(self, next_cone):
+    def __publish_optimized_path(self, optimized_path: List[RaceTrajectory]):
+        """
+        Publish the optimized path.
+
+        :param optimized_path: The optimized path to be published.
+        """
+        for entry in optimized_path:
+            x = entry[1]  # x_m
+            y = entry[2]  # y_m
+            v = entry[5]  # vx_mps
+
+            logging.info('-----------------------')
+            logging.info(
+                f'Publishing Optimized Path: i:{self.index} x:{x} y:{y} velocity:{v}')
+            self.planned_trajectory_publisher.publish(PlannedTrajectory(
+                index=self.index, target_x=x, target_y=y, target_velocity=v))
+            self.index += 1
+
+    def __add_to_received_cones(self, next_cone: Cone):
         """
         Add receiving cone to a list corresponding to its color.
 

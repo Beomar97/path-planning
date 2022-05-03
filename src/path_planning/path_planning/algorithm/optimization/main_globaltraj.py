@@ -3,10 +3,10 @@ import copy
 import json
 import os
 import time
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pkg_resources
 import trajectory_planning_helpers as tph
 from path_planning.algorithm.optimization.helper_funcs_glob.src.check_traj import \
     check_traj
@@ -22,6 +22,8 @@ from path_planning.algorithm.optimization.helper_funcs_glob.src.result_plots imp
     result_plots
 from path_planning.algorithm.optimization.opt_mintime_traj.src.opt_mintime import \
     opt_mintime
+from path_planning.model.racetrajectory import RaceTrajectory
+from path_planning.model.refpoint import Refpoint
 
 """
 Created by:
@@ -32,7 +34,10 @@ This script has to be executed to generate an optimal trajectory based on a give
 """
 
 
-def optimize_path(reftrack=None):
+def optimize_path(
+    reftrack: List[Refpoint] = None,
+    show_plot: bool = False
+) -> List[RaceTrajectory]:
 
     # ----------------------------------------------------------------------------------------------------------------------
     # USER INPUT -----------------------------------------------------------------------------------------------------------
@@ -473,19 +478,20 @@ def optimize_path(reftrack=None):
                                                      el_lengths=el_lengths_opt_interp)
     print("INFO: Estimated laptime: %.2fs" % t_profile_cl[-1])
 
-    if plot_opts["racetraj_vel"]:
-        s_points = np.cumsum(el_lengths_opt_interp[:-1])
-        s_points = np.insert(s_points, 0, 0.0)
+    if show_plot:
+        if plot_opts["racetraj_vel"]:
+            s_points = np.cumsum(el_lengths_opt_interp[:-1])
+            s_points = np.insert(s_points, 0, 0.0)
 
-        plt.plot(s_points, vx_profile_opt)
-        plt.plot(s_points, ax_profile_opt)
-        plt.plot(s_points, t_profile_cl[:-1])
+            plt.plot(s_points, vx_profile_opt)
+            plt.plot(s_points, ax_profile_opt)
+            plt.plot(s_points, t_profile_cl[:-1])
 
-        plt.grid()
-        plt.xlabel("distance in m")
-        plt.legend(["vx in m/s", "ax in m/s2", "t in s"])
+            plt.grid()
+            plt.xlabel("distance in m")
+            plt.legend(["vx in m/s", "ax in m/s2", "t in s"])
 
-        plt.show()
+            plt.show()
 
     # ----------------------------------------------------------------------------------------------------------------------
     # CALCULATE LAP TIMES (AT DIFFERENT SCALES AND TOP SPEEDS) -------------------------------------------------------------
@@ -594,49 +600,61 @@ def optimize_path(reftrack=None):
     # EXPORT ---------------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
-    # export race trajectory  to CSV
-    if "traj_race_export" in file_paths.keys():
-        export_traj_race(file_paths=file_paths,
-                         traj_race=traj_race_cl)
+    # only export to file if no reftrack is given by the path planner
+    if reftrack is None:
 
-    # if requested, export trajectory including map information (via normal vectors) to CSV
-    if "traj_ltpl_export" in file_paths.keys():
-        export_traj_ltpl(file_paths=file_paths,
-                         spline_lengths_opt=spline_lengths_opt,
-                         trajectory_opt=trajectory_opt,
-                         reftrack=reftrack_interp,
-                         normvec_normalized=normvec_normalized_interp,
-                         alpha_opt=alpha_opt)
+        # export race trajectory  to CSV
+        if "traj_race_export" in file_paths.keys():
+            export_traj_race(file_paths=file_paths,
+                             traj_race=traj_race_cl)
 
-    print("INFO: Finished export of trajectory:", time.strftime("%H:%M:%S"))
+        # if requested, export trajectory including map information (via normal vectors) to CSV
+        if "traj_ltpl_export" in file_paths.keys():
+            export_traj_ltpl(file_paths=file_paths,
+                             spline_lengths_opt=spline_lengths_opt,
+                             trajectory_opt=trajectory_opt,
+                             reftrack=reftrack_interp,
+                             normvec_normalized=normvec_normalized_interp,
+                             alpha_opt=alpha_opt)
+
+        print("INFO: Finished export of trajectory:", time.strftime("%H:%M:%S"))
 
     # ----------------------------------------------------------------------------------------------------------------------
     # PLOT RESULTS ---------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
-    # get bound of imported map (for reference in final plot)
-    bound1_imp = None
-    bound2_imp = None
+    if show_plot:
 
-    if plot_opts["imported_bounds"]:
-        # try to extract four times as many points as in the interpolated version (in order to hold more details)
-        n_skip = max(int(reftrack_imp.shape[0] / (bound1.shape[0] * 4)), 1)
+        # get bound of imported map (for reference in final plot)
+        bound1_imp = None
+        bound2_imp = None
 
-        _, _, _, normvec_imp = tph.calc_splines.calc_splines(path=np.vstack((reftrack_imp[::n_skip, 0:2],
-                                                                             reftrack_imp[0, 0:2])))
+        if plot_opts["imported_bounds"]:
+            # try to extract four times as many points as in the interpolated version (in order to hold more details)
+            n_skip = max(int(reftrack_imp.shape[0] / (bound1.shape[0] * 4)), 1)
 
-        bound1_imp = reftrack_imp[::n_skip, :2] + normvec_imp * \
-            np.expand_dims(reftrack_imp[::n_skip, 2], 1)
-        bound2_imp = reftrack_imp[::n_skip, :2] - normvec_imp * \
-            np.expand_dims(reftrack_imp[::n_skip, 3], 1)
+            _, _, _, normvec_imp = tph.calc_splines.calc_splines(path=np.vstack((reftrack_imp[::n_skip, 0:2],
+                                                                                 reftrack_imp[0, 0:2])))
 
-    # plot results
-    result_plots(plot_opts=plot_opts,
-                 width_veh_opt=pars["optim_opts"]["width_opt"],
-                 width_veh_real=pars["veh_params"]["width"],
-                 refline=reftrack_interp[:, :2],
-                 bound1_imp=bound1_imp,
-                 bound2_imp=bound2_imp,
-                 bound1_interp=bound1,
-                 bound2_interp=bound2,
-                 trajectory=trajectory_opt)
+            bound1_imp = reftrack_imp[::n_skip, :2] + normvec_imp * \
+                np.expand_dims(reftrack_imp[::n_skip, 2], 1)
+            bound2_imp = reftrack_imp[::n_skip, :2] - normvec_imp * \
+                np.expand_dims(reftrack_imp[::n_skip, 3], 1)
+
+        # plot results
+        result_plots(plot_opts=plot_opts,
+                     width_veh_opt=pars["optim_opts"]["width_opt"],
+                     width_veh_real=pars["veh_params"]["width"],
+                     refline=reftrack_interp[:, :2],
+                     bound1_imp=bound1_imp,
+                     bound2_imp=bound2_imp,
+                     bound1_interp=bound1,
+                     bound2_interp=bound2,
+                     trajectory=trajectory_opt)
+
+    # ----------------------------------------------------------------------------------------------------------------------
+    # RETURN OPTIMIZED RACETRAJECTORY --------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------------
+
+    if reftrack:
+        return traj_race_cl

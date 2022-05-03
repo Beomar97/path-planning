@@ -2,6 +2,7 @@ import math
 from typing import List
 
 from path_planning.model.coordinate import Coordinate
+from path_planning.model.refpoint import Refpoint
 from scipy.spatial.distance import cdist
 
 
@@ -18,7 +19,7 @@ class OptimizationInputTransformer:
         orange_cones: List[Coordinate],
         big_orange_cones: List[Coordinate],
         refline: List[Coordinate]
-    ):
+    ) -> List[Refpoint]:
         """
         Transform the given input from the Exploration algorithm to a format the Optimization algorithm can use.
 

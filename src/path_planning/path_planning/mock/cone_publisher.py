@@ -42,9 +42,10 @@ class ConePublisher(Node):
     def __init__(self):
         super().__init__("cone_publisher")
 
-        self.is_acceleration = sys.argv[1].startswith("acceleration")
-
         if len(sys.argv) >= 2:
+
+            self.is_acceleration = sys.argv[1].startswith("acceleration")
+
             # load track information from csv
             self.get_logger().info(
                 f'Loading track from csv file {sys.argv[1]}')
@@ -131,47 +132,53 @@ class ConePublisher(Node):
         if self.i < len(self.cones):
 
             if self.is_acceleration:
-                if self.i < 4:
-                    self.__publish_cone(self.big_orange_cones[self.bo_i])
-                    self.bo_i += 1
-                elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i < len(self.big_orange_cones):
-                    self.__publish_cone(self.big_orange_cones[self.bo_i])
-                    self.bo_i += 1
-                elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i >= len(self.big_orange_cones) and self.o_i < len(self.orange_cones):
-                    self.__publish_cone(self.orange_cones[self.o_i])
-                    self.o_i += 1
-                elif self.i % 2 == 0:
-                    if self.b_i < len(self.blue_cones):
-                        self.__publish_cone(self.blue_cones[self.b_i])
-                        self.b_i += 1
-                else:
-                    if self.y_i < len(self.yellow_cones):
-                        self.__publish_cone(self.yellow_cones[self.y_i])
-                        self.y_i += 1
+                self.__handle_acceleration()
             else:
-                if self.i < len(self.big_orange_cones):
-                    self.__publish_cone(self.big_orange_cones[self.bo_i])
-                    self.bo_i += 1
-                elif self.i % 2 == 0:
-                    if self.b_i < len(self.blue_cones):
-                        self.__publish_cone(self.blue_cones[self.b_i])
-                        self.b_i += 1
-                    else:
-                        self.__publish_cone(self.yellow_cones[self.y_i])
-                        self.y_i += 1
-                else:
-                    if self.y_i < len(self.yellow_cones):
-                        self.__publish_cone(self.yellow_cones[self.y_i])
-                        self.y_i += 1
-                    else:
-                        self.__publish_cone(self.blue_cones[self.b_i])
-                        self.b_i += 1
+                self.__handle_trackdrive()
 
             self.i += 1
 
         else:
             if self.LAPS > self.current_lap:
                 self.__reset_indexes()
+
+    def __handle_acceleration(self):
+        if self.i < 4:
+            self.__publish_cone(self.big_orange_cones[self.bo_i])
+            self.bo_i += 1
+        elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i < len(self.big_orange_cones):
+            self.__publish_cone(self.big_orange_cones[self.bo_i])
+            self.bo_i += 1
+        elif self.b_i >= len(self.blue_cones) and self.y_i >= len(self.yellow_cones) and self.bo_i >= len(self.big_orange_cones) and self.o_i < len(self.orange_cones):
+            self.__publish_cone(self.orange_cones[self.o_i])
+            self.o_i += 1
+        elif self.i % 2 == 0:
+            if self.b_i < len(self.blue_cones):
+                self.__publish_cone(self.blue_cones[self.b_i])
+                self.b_i += 1
+        else:
+            if self.y_i < len(self.yellow_cones):
+                self.__publish_cone(self.yellow_cones[self.y_i])
+                self.y_i += 1
+
+    def __handle_trackdrive(self):
+        if self.i < len(self.big_orange_cones):
+            self.__publish_cone(self.big_orange_cones[self.bo_i])
+            self.bo_i += 1
+        elif self.i % 2 == 0:
+            if self.b_i < len(self.blue_cones):
+                self.__publish_cone(self.blue_cones[self.b_i])
+                self.b_i += 1
+            else:
+                self.__publish_cone(self.yellow_cones[self.y_i])
+                self.y_i += 1
+        else:
+            if self.y_i < len(self.yellow_cones):
+                self.__publish_cone(self.yellow_cones[self.y_i])
+                self.y_i += 1
+            else:
+                self.__publish_cone(self.blue_cones[self.b_i])
+                self.b_i += 1
 
     def __publish_cone(self, cone):
         color = map_tag_to_color(cone[0])

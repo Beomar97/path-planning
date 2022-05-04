@@ -29,10 +29,11 @@ class PathPlanner(Node):
     LOG_LEVEL = logging.INFO
     SHOW_PLOT = True
     MOCK_CURRENT_POSITION = True
-    TRACK_CONFIG = TrackConfig.SmallTrack
+    TRACK_CONFIG = TrackConfig.Rand
 
     # set constants
     EXPLORATION_VELOCITY = 5.0
+    MAX_CONES = 50
 
     # set class variables
     mode = Mode.EXPLORATION
@@ -114,8 +115,8 @@ class PathPlanner(Node):
             last_midpoint, planned_path = Exploration.calculate_path(
                 self.current_position,
                 next_cone,
-                self.blue_cones,
-                self.yellow_cones,
+                self.blue_cones[-self.MAX_CONES:],
+                self.yellow_cones[-self.MAX_CONES:],
                 self.orange_cones,
                 self.big_orange_cones,
                 PathPlanner.TRACK_CONFIG,

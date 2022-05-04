@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import rclpy
 from fszhaw_msgs.msg import Cone, CurrentPosition, PlannedTrajectory
 from rclpy.node import Node
+from scipy.spatial.distance import cdist
 
 from path_planning.algorithm.exploration.exploration import Exploration
 from path_planning.algorithm.optimization.main_globaltraj import optimize_path
@@ -38,6 +39,8 @@ class PathPlanner(Node):
     # set class variables
     mode = Mode.EXPLORATION
     index = 0
+    laps = 0
+
     current_position = TRACK_CONFIG.START_CURRENT_POSITION
     all_cones = []
     blue_cones = []
@@ -45,8 +48,11 @@ class PathPlanner(Node):
     orange_cones = []
     big_orange_cones = []
     unknown_cones = []
+
     calculated_path = []
     optimized_path = []
+
+    start_finish_cones = []
 
     def __init__(self):
         """
@@ -111,6 +117,30 @@ class PathPlanner(Node):
         # add next cone to its corresponding list regarding it's color
         self.__add_to_received_cones(next_cone)
 
+        # -----------
+
+        if self.index >= 20:
+            if next_cone.color == Cone.ORANGE_BIG:
+                distance_to_cone = cdist(
+                    [[self.current_position.vehicle_position_x,
+                        self.current_position.vehicle_position_y]],
+                    [[next_cone.location.x, next_cone.location.y]])[0][0]
+                if distance_to_cone < 5:
+                    self.start_finish_cones.append(
+                        [next_cone.location.x, next_cone.location.y])
+                if len(self.start_finish_cones) >= 3:
+                    d = cdist([[next_cone.location.x, next_cone.location.y]],
+                              self.start_finish_cones)[0]
+                    for oc in d:
+                        if oc < 12:
+                            self.laps += 1
+                            self.mode = Mode.OPTIMIZATION
+
+            if self.index % 20 == 0:
+                self.start_finish_cones.clear()
+
+        # -----------
+
         if self.mode == Mode.EXPLORATION:
             last_midpoint, planned_path = Exploration.calculate_path(
                 self.current_position,
@@ -130,8 +160,8 @@ class PathPlanner(Node):
             self.calculated_path.extend(planned_path)
             self.__publish_planned_path(planned_path)
 
-            if len(self.all_cones) >= PathPlanner.TRACK_CONFIG.NR_OF_CONES:
-                self.mode = Mode.OPTIMIZATION
+            # if len(self.all_cones) >= PathPlanner.TRACK_CONFIG.NR_OF_CONES:
+            #    self.mode = Mode.OPTIMIZATION
         else:
             if PathPlanner.SHOW_PLOT:
                 plt.ioff()  # deactivate interactive mode (from exploration algorithm)

@@ -19,7 +19,7 @@ class ConePublisher(Node):
     MSG_TYPE = Cone
     TOPIC = "cone"
     QUEUE_SIZE = 10
-    TIMER_PERIOD = 0.2  # seconds
+    TIMER_PERIOD = 0.1  # seconds
 
     # init class variables
     is_acceleration = False

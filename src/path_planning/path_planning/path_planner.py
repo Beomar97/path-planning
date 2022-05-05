@@ -120,7 +120,8 @@ class PathPlanner(Node):
         if self.index >= 50 and next_cone.color == Cone.ORANGE_BIG:
             self.__handle_start_finish_detection(next_cone)
             if self.index % 20 == 0:
-            self.start_finish_cones.clear() # enough cones need to be detected in the given range (last 20 cones)
+                # enough cones need to be detected in the given range (last 20 cones)
+                self.start_finish_cones.clear()
 
         # -----------
 
@@ -187,22 +188,25 @@ class PathPlanner(Node):
 
         :param next_cone: The just received cone.
         """
-        distance_to_cone = cdist([[self.current_position.vehicle_position_x, self.current_position.vehicle_position_y]], 
-        [[next_cone.location.x, next_cone.location.y]])[0][0]
+        distance_to_cone = cdist([[self.current_position.vehicle_position_x, self.current_position.vehicle_position_y]],
+                                 [[next_cone.location.x, next_cone.location.y]])[0][0]
 
-        # check distance current position <-> receiving cone   
+        # check distance current position <-> receiving cone
         if distance_to_cone < PathPlanner.TRACK_CONFIG.POSITION_DISTANCE_THRESHOLD:
             # save as a valid start finish cone
-            self.start_finish_cones.append([next_cone.location.x, next_cone.location.y])
+            self.start_finish_cones.append(
+                [next_cone.location.x, next_cone.location.y])
 
             # check if enough valid start finish cones have been received
             if len(self.start_finish_cones) >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
-                    distances_to_start_finish_cones = cdist([[next_cone.location.x, next_cone.location.y]], self.start_finish_cones)[0]
+                distances_to_start_finish_cones = cdist(
+                    [[next_cone.location.x, next_cone.location.y]], self.start_finish_cones)[0]
 
-                    # if at least e.g. 3 satisfy the condition => sucessfully detected start finish line, switch to optimization
-                    if sum(1 for distance in distances_to_start_finish_cones if distance < PathPlanner.TRACK_CONFIG.EDGE_DISTANCE_THRESHOLD) \
-                    >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
-                        self.mode = Mode.OPTIMIZATION
+                # if at least e.g. 3 satisfy the condition => sucessfully detected start finish line, switch to optimization
+                if sum(1 for distance in distances_to_start_finish_cones if distance < PathPlanner.TRACK_CONFIG.EDGE_DISTANCE_THRESHOLD) \
+                        >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
+                    self.mode = Mode.OPTIMIZATION
+
     def __publish_planned_path(self, planned_path: List[Coordinate]):
         """
         Publish the planned path.

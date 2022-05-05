@@ -39,7 +39,6 @@ class PathPlanner(Node):
     # set class variables
     mode = Mode.EXPLORATION
     index = 0
-    laps = 0
 
     current_position = TRACK_CONFIG.START_CURRENT_POSITION
     all_cones = []
@@ -117,27 +116,11 @@ class PathPlanner(Node):
         # add next cone to its corresponding list regarding it's color
         self.__add_to_received_cones(next_cone)
 
-        # -----------
-
-        if self.index >= 20:
-            if next_cone.color == Cone.ORANGE_BIG:
-                distance_to_cone = cdist(
-                    [[self.current_position.vehicle_position_x,
-                        self.current_position.vehicle_position_y]],
-                    [[next_cone.location.x, next_cone.location.y]])[0][0]
-                if distance_to_cone < 5:
-                    self.start_finish_cones.append(
-                        [next_cone.location.x, next_cone.location.y])
-                if len(self.start_finish_cones) >= 3:
-                    d = cdist([[next_cone.location.x, next_cone.location.y]],
-                              self.start_finish_cones)[0]
-                    for oc in d:
-                        if oc < 12:
-                            self.laps += 1
-                            self.mode = Mode.OPTIMIZATION
-
+        # handle start finish detection if a big orange cone is detected
+        if self.index >= 50 and next_cone.color == Cone.ORANGE_BIG:
+            self.__handle_start_finish_detection(next_cone)
             if self.index % 20 == 0:
-                self.start_finish_cones.clear()
+            self.start_finish_cones.clear() # enough cones need to be detected in the given range (last 20 cones)
 
         # -----------
 
@@ -160,8 +143,6 @@ class PathPlanner(Node):
             self.calculated_path.extend(planned_path)
             self.__publish_planned_path(planned_path)
 
-            # if len(self.all_cones) >= PathPlanner.TRACK_CONFIG.NR_OF_CONES:
-            #    self.mode = Mode.OPTIMIZATION
         else:
             if PathPlanner.SHOW_PLOT:
                 plt.ioff()  # deactivate interactive mode (from exploration algorithm)
@@ -172,6 +153,56 @@ class PathPlanner(Node):
                 reftrack, PathPlanner.SHOW_PLOT)
             self.__publish_optimized_path(optimized_path)
 
+    def __add_to_received_cones(self, next_cone: Cone):
+        """
+        Add receiving cone to a list corresponding to its color.
+
+        :param next_cone: The received next cone.
+        """
+        self.all_cones.append([next_cone.location.x, next_cone.location.y])
+        if next_cone.color == Cone.BLUE:
+            self.blue_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.YELLOW:
+            self.yellow_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.ORANGE_SMALL:
+            self.orange_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        elif next_cone.color == Cone.ORANGE_BIG:
+            self.big_orange_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+        else:
+            self.unknown_cones.append(
+                [next_cone.location.x, next_cone.location.y])
+
+    def __handle_start_finish_detection(self, next_cone: Cone):
+        """
+        Handle the start finish line detection.
+
+        The received cone must be near enough the vehicle's current position, 
+        if so, the cone will be saved as a valid 'start finish' cone.
+        If enough 'start finish' cones have been received in the last couple cones (e.g. 20),
+        check if at least a number of cones are in the threshold.
+
+        :param next_cone: The just received cone.
+        """
+        distance_to_cone = cdist([[self.current_position.vehicle_position_x, self.current_position.vehicle_position_y]], 
+        [[next_cone.location.x, next_cone.location.y]])[0][0]
+
+        # check distance current position <-> receiving cone   
+        if distance_to_cone < PathPlanner.TRACK_CONFIG.POSITION_DISTANCE_THRESHOLD:
+            # save as a valid start finish cone
+            self.start_finish_cones.append([next_cone.location.x, next_cone.location.y])
+
+            # check if enough valid start finish cones have been received
+            if len(self.start_finish_cones) >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
+                    distances_to_start_finish_cones = cdist([[next_cone.location.x, next_cone.location.y]], self.start_finish_cones)[0]
+
+                    # if at least e.g. 3 satisfy the condition => sucessfully detected start finish line, switch to optimization
+                    if sum(1 for distance in distances_to_start_finish_cones if distance < PathPlanner.TRACK_CONFIG.EDGE_DISTANCE_THRESHOLD) \
+                    >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
+                        self.mode = Mode.OPTIMIZATION
     def __publish_planned_path(self, planned_path: List[Coordinate]):
         """
         Publish the planned path.
@@ -207,29 +238,6 @@ class PathPlanner(Node):
             self.planned_trajectory_publisher.publish(PlannedTrajectory(
                 index=self.index, target_x=x, target_y=y, target_velocity=v))
             self.index += 1
-
-    def __add_to_received_cones(self, next_cone: Cone):
-        """
-        Add receiving cone to a list corresponding to its color.
-
-        :param next_cone: The received next cone.
-        """
-        self.all_cones.append([next_cone.location.x, next_cone.location.y])
-        if next_cone.color == Cone.BLUE:
-            self.blue_cones.append(
-                [next_cone.location.x, next_cone.location.y])
-        elif next_cone.color == Cone.YELLOW:
-            self.yellow_cones.append(
-                [next_cone.location.x, next_cone.location.y])
-        elif next_cone.color == Cone.ORANGE_SMALL:
-            self.orange_cones.append(
-                [next_cone.location.x, next_cone.location.y])
-        elif next_cone.color == Cone.ORANGE_BIG:
-            self.big_orange_cones.append(
-                [next_cone.location.x, next_cone.location.y])
-        else:
-            self.unknown_cones.append(
-                [next_cone.location.x, next_cone.location.y])
 
 
 def main(args=None):

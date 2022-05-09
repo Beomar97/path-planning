@@ -249,7 +249,6 @@ def main(args=None):
     Run the path planner.
 
     :param args: Additional arguments (Default value = None).
-
     """
     rclpy.init(args=args)
 

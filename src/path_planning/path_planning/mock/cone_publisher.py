@@ -3,14 +3,18 @@ import os
 import sys
 
 import rclpy
-from fs_msgs.msg import Track
-from fszhaw_msgs.msg import Cone
+from fszhaw_msgs.msg import Cone, Track
 from geometry_msgs.msg import Point
 from path_planning.model.tag import Tag
 from rclpy.node import Node
 
 
 class ConePublisher(Node):
+    """
+    Cone Publisher.
+
+    A mock for publishing cones to the Path Planner.
+    """
 
     # config
     LAPS = 2  # how many laps to publish
@@ -40,6 +44,12 @@ class ConePublisher(Node):
     o_i = 0  # orange
 
     def __init__(self):
+        """
+        Initialize the cone publisher.
+
+        Loads the track from the supplied csv file or
+        creates a subscribtion to receive the track from the simulation tool.
+        """
         super().__init__("cone_publisher")
 
         if len(sys.argv) >= 2:
@@ -97,6 +107,11 @@ class ConePublisher(Node):
             ConePublisher.TIMER_PERIOD, self.timer_callback)
 
     def __track_listener_callback(self, msg):
+        """
+        Execute callback function when receiving the track from the simulation tool.
+
+        :param msg: Message with the track.
+        """
         if self.track_received:
             return
         else:
@@ -129,6 +144,7 @@ class ConePublisher(Node):
             self.track_received = True
 
     def timer_callback(self):
+        """Execute timer callback function for publishing cones."""
         if self.i < len(self.cones):
 
             if self.is_acceleration:
@@ -143,6 +159,7 @@ class ConePublisher(Node):
                 self.__reset_indexes()
 
     def __handle_acceleration(self):
+        """Publish cones logic for acceleration track."""
         if self.i < 4:
             self.__publish_cone(self.big_orange_cones[self.bo_i])
             self.bo_i += 1
@@ -162,6 +179,7 @@ class ConePublisher(Node):
                 self.y_i += 1
 
     def __handle_trackdrive(self):
+        """Publish cones logic for general trackdrive tracks."""
         if self.i < len(self.big_orange_cones):
             self.__publish_cone(self.big_orange_cones[self.bo_i])
             self.bo_i += 1
@@ -181,6 +199,11 @@ class ConePublisher(Node):
                 self.b_i += 1
 
     def __publish_cone(self, cone):
+        """
+        Publish a cone to the Path Planner.
+
+        :param cone: Cone to publish.
+        """
         color = map_tag_to_color(cone[0])
         x = cone[1]
         y = cone[2]
@@ -191,6 +214,7 @@ class ConePublisher(Node):
             Cone(color=color, location=Point(x=x, y=y, z=z)))
 
     def __reset_indexes(self):
+        """Reset indexes."""
         self.i = 0
         self.b_i = 0
         self.y_i = 0
@@ -199,6 +223,11 @@ class ConePublisher(Node):
 
 
 def map_tag_to_color(tag):
+    """
+    Map a tag to it's corresponding cone color.
+
+    :param tag: Tag of the cone or coordinate.
+    """
     if tag == Tag.BLUE.value:
         return Cone.BLUE
     elif tag == Tag.YELLOW.value:
@@ -212,6 +241,11 @@ def map_tag_to_color(tag):
 
 
 def main(args=None):
+    """
+    Run the cone publisher.
+
+    :param args: Additional arguments (Default value = None).
+    """
     rclpy.init(args=args)
 
     cone_publisher = ConePublisher()

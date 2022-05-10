@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'path_planner = path_planning.path_planner:main',
+            'optimization_service = path_planning.optimization_service:main',
             'cone_publisher = path_planning.mock.cone_publisher:main',
             'planned_trajectory_subscriber = path_planning.mock.planned_trajectory_subscriber:main',
             'track_plotter = path_planning.util.track_plotter:main',

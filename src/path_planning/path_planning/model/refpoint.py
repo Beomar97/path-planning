@@ -7,7 +7,7 @@ class Refpoint:
     A collection of reference points (reference track) is needed as input for the optimization algorithm.
     """
 
-    def __init__(self, x: float, y: float, w_tr_right: float, w_tr_left):
+    def __init__(self, x: float, y: float, w_tr_right: float, w_tr_left: float):
         """
         Create a reference point.
 

@@ -39,8 +39,13 @@ set(msg_files
   "msg/Coordinate.msg"
 )
 
+set(srv_files
+  "srv/OptimizePath.srv"
+)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
+  ${srv_files}
 )
 
 ament_export_dependencies(rosidl_default_runtime)

@@ -1,20 +1,20 @@
 import logging
+from asyncio import Future
+from pathlib import Path
 from typing import List
 
 import matplotlib.pyplot as plt
 import rclpy
 from fszhaw_msgs.msg import Cone, CurrentPosition, PlannedTrajectory
+from interfaces.srv import OptimizePath
 from rclpy.node import Node
 from scipy.spatial.distance import cdist
 
 from path_planning.algorithm.exploration.exploration import Exploration
-from path_planning.algorithm.optimization.main_globaltraj import optimize_path
 from path_planning.model.coordinate import Coordinate
 from path_planning.model.mode import Mode
 from path_planning.model.racetrajectory import RaceTrajectory
 from path_planning.track_config import TrackConfig
-from path_planning.util.optimization_input_transformer import \
-    OptimizationInputTransformer
 
 
 class PathPlanner(Node):
@@ -25,20 +25,24 @@ class PathPlanner(Node):
     and calculates the path the vehicle should take, and optimizes the path once the full track is known.
     """
 
-    # testing config
+    LAPS = 2
     PROD = False
+
+    # testing config
     LOG_LEVEL = logging.INFO
-    SHOW_PLOT = True
+    SHOW_PLOT = False
     MOCK_CURRENT_POSITION = True
-    TRACK_CONFIG = TrackConfig.Rand
+    TRACK_CONFIG = TrackConfig.SmallTrack
 
     # set constants
     EXPLORATION_VELOCITY = 5.0
     MAX_CONES = 50
+    START_FINISH_CONES_NEEDED = 2
 
     # set class variables
     mode = Mode.EXPLORATION
     index = 0
+    laps_completed = 0
 
     current_position = TRACK_CONFIG.START_CURRENT_POSITION
     all_cones = []
@@ -82,6 +86,16 @@ class PathPlanner(Node):
             10)
         self.current_position_subscription  # prevent unused variable warning
 
+        # init optimization client
+        self.optimization_client = self.create_client(
+            OptimizePath,
+            'optimize_path')
+        while not self.optimization_client.wait_for_service(timeout_sec=1.0):
+            logging.info(
+                'Optimization Service not available, waiting again...')
+        self.req = OptimizePath.Request()
+        self.future = Future()
+
         # init planned path publisher
         self.planned_trajectory_publisher = self.create_publisher(
             PlannedTrajectory, 'planned_trajectory', 10)
@@ -119,11 +133,9 @@ class PathPlanner(Node):
         # handle start finish detection if a big orange cone is detected
         if self.index >= 50 and next_cone.color == Cone.ORANGE_BIG:
             self.__handle_start_finish_detection(next_cone)
-            if self.index % 20 == 0:
-                # enough cones need to be detected in the given range (last 20 cones)
-                self.start_finish_cones.clear()
-
-        # -----------
+        if self.index % 20 == 0:
+            # enough cones need to be detected in the given range (last 20 cones)
+            self.start_finish_cones.clear()
 
         if self.mode == Mode.EXPLORATION:
             last_midpoint, planned_path = Exploration.calculate_path(
@@ -147,12 +159,6 @@ class PathPlanner(Node):
         else:
             if PathPlanner.SHOW_PLOT:
                 plt.ioff()  # deactivate interactive mode (from exploration algorithm)
-
-            reftrack = OptimizationInputTransformer.transform(
-                self.blue_cones, self.yellow_cones, self.orange_cones, self.big_orange_cones, self.calculated_path)
-            optimized_path = optimize_path(
-                reftrack, PathPlanner.SHOW_PLOT)
-            self.__publish_optimized_path(optimized_path)
 
     def __add_to_received_cones(self, next_cone: Cone):
         """
@@ -202,10 +208,27 @@ class PathPlanner(Node):
                 distances_to_start_finish_cones = cdist(
                     [[next_cone.location.x, next_cone.location.y]], self.start_finish_cones)[0]
 
-                # if at least e.g. 3 satisfy the condition => sucessfully detected start finish line, switch to optimization
+                # if at least e.g. 2 satisfy the condition => sucessfully detected start finish line, switch to optimization
                 if sum(1 for distance in distances_to_start_finish_cones if distance < PathPlanner.TRACK_CONFIG.EDGE_DISTANCE_THRESHOLD) \
-                        >= PathPlanner.TRACK_CONFIG.CONES_THRESHOLD:
-                    self.mode = Mode.OPTIMIZATION
+                        >= PathPlanner.START_FINISH_CONES_NEEDED:
+
+                    if self.mode == Mode.EXPLORATION:
+                        self.__prepare_optimization_request()
+                        self.future = self.optimization_client.call_async(
+                            self.req)
+
+                    self.laps_completed += 1
+
+    def __prepare_optimization_request(self):
+        self.req.blue_cones_x, self.req.blue_cones_y = zip(*self.blue_cones)
+        self.req.yellow_cones_x, self.req.yellow_cones_y = zip(
+            *self.yellow_cones)
+        self.req.orange_cones_x, self.req.orange_cones_y = zip(
+            *self.orange_cones) if self.orange_cones else [[], []]
+        self.req.big_orange_cones_x, self.req.big_orange_cones_y = zip(
+            *self.big_orange_cones) if self.big_orange_cones else [[], []]
+        self.req.refline_x, self.req.refline_y = zip(*self.calculated_path)
+        self.req.show_plot = PathPlanner.SHOW_PLOT
 
     def __publish_planned_path(self, planned_path: List[Coordinate]):
         """
@@ -213,31 +236,39 @@ class PathPlanner(Node):
 
         :param planned_path: The planned path to be published.
         """
+        logging.info('-----------------------')
+        logging.info(
+            f'Publishing Planned Path: indexes {self.index} - {self.index + len(planned_path) - 1}')
+
         for point in planned_path:
             x = point[0]
             y = point[1]
             v = PathPlanner.EXPLORATION_VELOCITY
 
-            logging.info('-----------------------')
-            logging.info(
+            logging.debug('-----------------------')
+            logging.debug(
                 f'Publishing Planned Path: i:{self.index} x:{x} y:{y} velocity:{v}')
             self.planned_trajectory_publisher.publish(PlannedTrajectory(
                 index=self.index, target_x=x, target_y=y, target_velocity=v))
             self.index += 1
 
-    def __publish_optimized_path(self, optimized_path: List[RaceTrajectory]):
+    def publish_optimized_path(self, optimized_path: List[RaceTrajectory]):
         """
         Publish the optimized path.
 
         :param optimized_path: The optimized path to be published.
         """
+        logging.info('-----------------------')
+        logging.info(
+            f'Publishing Optimized Path: indexes {self.index} - {self.index + len(optimized_path) - 1}')
+
         for entry in optimized_path:
             x = entry[1]  # x_m
             y = entry[2]  # y_m
             v = entry[5]  # vx_mps
 
-            logging.info('-----------------------')
-            logging.info(
+            logging.debug('-----------------------')
+            logging.debug(
                 f'Publishing Optimized Path: i:{self.index} x:{x} y:{y} velocity:{v}')
             self.planned_trajectory_publisher.publish(PlannedTrajectory(
                 index=self.index, target_x=x, target_y=y, target_velocity=v))
@@ -253,8 +284,28 @@ def main(args=None):
     rclpy.init(args=args)
 
     path_planner = PathPlanner()
+    optimized_laps_published = 0
 
-    rclpy.spin(path_planner)
+    while rclpy.ok():
+        rclpy.spin_once(path_planner)
+        # check if response from optimization service has been received
+        if path_planner.future.done() and optimized_laps_published < PathPlanner.LAPS - 1:
+            try:
+                response = path_planner.future.result()
+            except Exception as e:
+                path_planner.get_logger().error(
+                    'Service call failed %r' % (e,))
+            else:
+                # switch mode to optimization => stop using exploration algorithm
+                path_planner.mode = Mode.OPTIMIZATION
+
+                # zip and map back together optimized path into one list from response
+                optimized_path = list(map(list, zip(response.optimized_path_s_m, response.optimized_path_x_m, response.optimized_path_y_m,
+                                      response.optimized_path_psi_rad, response.optimized_path_kappa_radpm, response.optimized_path_vx_mps, response.optimized_path_ax_mps2)))
+
+                # publish the optimized path to the autopilot
+                path_planner.publish_optimized_path(optimized_path)
+                optimized_laps_published += 1  # only publish the path for as many laps as it needs
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically

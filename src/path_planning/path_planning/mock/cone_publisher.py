@@ -221,6 +221,8 @@ class ConePublisher(Node):
         self.bo_i = 0
         self.o_i = 0
 
+        self.current_lap += 1
+
 
 def map_tag_to_color(tag):
     """

@@ -1,0 +1,19 @@
+float32[] blue_cones_x
+float32[] blue_cones_y
+float32[] yellow_cones_x
+float32[] yellow_cones_y
+float32[] orange_cones_x
+float32[] orange_cones_y
+float32[] big_orange_cones_x
+float32[] big_orange_cones_y
+float32[] refline_x
+float32[] refline_y
+bool show_plot
+---
+float32[] optimized_path_s_m
+float32[] optimized_path_x_m
+float32[] optimized_path_y_m
+float32[] optimized_path_psi_rad
+float32[] optimized_path_kappa_radpm
+float32[] optimized_path_vx_mps
+float32[] optimized_path_ax_mps2

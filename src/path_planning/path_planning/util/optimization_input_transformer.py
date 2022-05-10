@@ -79,6 +79,7 @@ class OptimizationInputTransformer:
                 if dist_big_orange < dist_yellow:
                     dist_yellow = dist_big_orange
 
-            reftrack.append([refpoint[0], refpoint[1], dist_yellow, dist_blue])
+            reftrack.append([float(refpoint[0]), float(
+                refpoint[1]), float(dist_yellow), float(dist_blue)])
 
         return reftrack

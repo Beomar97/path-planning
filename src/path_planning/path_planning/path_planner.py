@@ -30,9 +30,9 @@ class PathPlanner(Node):
 
     # testing config
     LOG_LEVEL = logging.INFO
-    SHOW_PLOT = False
+    SHOW_PLOT = True
     MOCK_CURRENT_POSITION = True
-    TRACK_CONFIG = TrackConfig.SmallTrack
+    TRACK_CONFIG = TrackConfig.Skidpad
 
     # set constants
     EXPLORATION_VELOCITY = 5.0

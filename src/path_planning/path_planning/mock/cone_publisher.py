@@ -17,7 +17,7 @@ class ConePublisher(Node):
     """
 
     # config
-    LAPS = 2  # how many laps to publish
+    LAPS = 1  # how many laps to publish
 
     # set constants
     MSG_TYPE = Cone
@@ -55,38 +55,17 @@ class ConePublisher(Node):
         if len(sys.argv) >= 2:
 
             self.is_acceleration = sys.argv[1].startswith("acceleration")
+            self.is_skidpad = sys.argv[1].startswith("skidpad")
 
-            # load track information from csv
-            self.get_logger().info(
-                f'Loading track from csv file {sys.argv[1]}')
-            with open(
-                os.getcwd() + "/src/path_planning/resource/maps/" + sys.argv[1]
-            ) as csv_file:
-                csv_reader = csv.DictReader(csv_file, delimiter=",")
+            if self.is_skidpad:
+                self.__load_map('skidpad_parts/skidpad_start.csv')
+                self.__load_map('skidpad_parts/skidpad_right.csv')
+                self.__load_map('skidpad_parts/skidpad_left.csv')
+                self.__load_map('skidpad_parts/skidpad_end.csv')
+            else:
+                # load track information from csv
+                self.__load_map(sys.argv[1])
 
-                for row in csv_reader:
-                    self.cones.append(
-                        [row["tag"], float(row["x"]), float(row["y"])])
-                    if row["tag"] == Tag.BLUE.value:
-                        self.blue_cones.append(
-                            [row["tag"], float(row["x"]), float(row["y"])]
-                        )
-                    elif row["tag"] == Tag.YELLOW.value:
-                        self.yellow_cones.append(
-                            [row["tag"], float(row["x"]), float(row["y"])]
-                        )
-                    elif row["tag"] == Tag.ORANGE.value:
-                        self.orange_cones.append(
-                            [row["tag"], float(row["x"]), float(row["y"])]
-                        )
-                    elif row["tag"] == Tag.BIG_ORANGE.value:
-                        self.big_orange_cones.append(
-                            [row["tag"], float(row["x"]), float(row["y"])]
-                        )
-                    else:
-                        self.unknown_cones.append(
-                            [row["tag"], float(row["x"]), float(row["y"])]
-                        )
         else:
             self.get_logger().info(
                 f'Receiving track from Simulation Tool at topic testing_only/track')
@@ -105,6 +84,43 @@ class ConePublisher(Node):
 
         self.timer = self.create_timer(
             ConePublisher.TIMER_PERIOD, self.timer_callback)
+
+    def __load_map(self, filename):
+        """
+        Load the track from the given csv file.
+
+        :param filename: Filename of the csv containing the track.
+        """
+        self.get_logger().info(
+            f'Loading track from csv file {filename}')
+        with open(
+            os.getcwd() + "/src/path_planning/resource/maps/" + filename
+        ) as csv_file:
+            csv_reader = csv.DictReader(csv_file, delimiter=",")
+
+            for row in csv_reader:
+                self.cones.append(
+                    [row["tag"], float(row["x"]), float(row["y"])])
+                if row["tag"] == Tag.BLUE.value:
+                    self.blue_cones.append(
+                        [row["tag"], float(row["x"]), float(row["y"])]
+                    )
+                elif row["tag"] == Tag.YELLOW.value:
+                    self.yellow_cones.append(
+                        [row["tag"], float(row["x"]), float(row["y"])]
+                    )
+                elif row["tag"] == Tag.ORANGE.value:
+                    self.orange_cones.append(
+                        [row["tag"], float(row["x"]), float(row["y"])]
+                    )
+                elif row["tag"] == Tag.BIG_ORANGE.value:
+                    self.big_orange_cones.append(
+                        [row["tag"], float(row["x"]), float(row["y"])]
+                    )
+                else:
+                    self.unknown_cones.append(
+                        [row["tag"], float(row["x"]), float(row["y"])]
+                    )
 
     def __track_listener_callback(self, msg):
         """
@@ -149,6 +165,8 @@ class ConePublisher(Node):
 
             if self.is_acceleration:
                 self.__handle_acceleration()
+            elif self.is_skidpad:
+                self.__handle_skidpad()
             else:
                 self.__handle_trackdrive()
 
@@ -177,6 +195,10 @@ class ConePublisher(Node):
             if self.y_i < len(self.yellow_cones):
                 self.__publish_cone(self.yellow_cones[self.y_i])
                 self.y_i += 1
+
+    def __handle_skidpad(self):
+        """Publish cones logic for skidpad track."""
+        self.__publish_cone(self.cones[self.i])
 
     def __handle_trackdrive(self):
         """Publish cones logic for general trackdrive tracks."""

@@ -36,7 +36,7 @@ class PathPlanner(Node):
 
     # set constants
     EXPLORATION_VELOCITY = 5.0
-    MAX_CONES = 50
+    MAX_CONES = 10
     START_FINISH_CONES_NEEDED = 2
 
     # set class variables
@@ -131,7 +131,7 @@ class PathPlanner(Node):
         self.__add_to_received_cones(next_cone)
 
         # handle start finish detection if a big orange cone is detected
-        if self.index >= 50 and next_cone.color == Cone.ORANGE_BIG:
+        if self.index >= 20 and next_cone.color == Cone.ORANGE_BIG:
             self.__handle_start_finish_detection(next_cone)
         if self.index % 20 == 0:
             # enough cones need to be detected in the given range (last 20 cones)
@@ -141,8 +141,8 @@ class PathPlanner(Node):
             last_midpoint, planned_path = Exploration.calculate_path(
                 self.current_position,
                 next_cone,
-                self.blue_cones[-self.MAX_CONES:],
-                self.yellow_cones[-self.MAX_CONES:],
+                self.blue_cones[-PathPlanner.MAX_CONES:],
+                self.yellow_cones[-PathPlanner.MAX_CONES:],
                 self.orange_cones,
                 self.big_orange_cones,
                 PathPlanner.TRACK_CONFIG,

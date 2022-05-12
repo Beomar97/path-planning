@@ -51,6 +51,8 @@ class Exploration:
         CONE_DISTANCE_THRESHOLD = track_config.CONE_DISTANCE_THRESHOLD
         CONES_THRESHOLD = track_config.CONES_THRESHOLD
         EDGE_DISTANCE_THRESHOLD = track_config.EDGE_DISTANCE_THRESHOLD
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = track_config.UNKNOWN_EDGE_DISTANCE_MINIMUM
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = track_config.UNKNOWN_EDGE_DISTANCE_MAXIMUM
 
         # if only coordinates (x, y) are needed
         next_coordinate = [next_cone.location.x, next_cone.location.y]
@@ -133,13 +135,20 @@ class Exploration:
                         if point_b_color != Cone.BLUE and point_b_color != Cone.YELLOW:
                             point_b_color = Cone.UNKNOWN
 
+                        # for (big) orange cones (labeled as unknown cones),
+                        # use for midpoints if it fulfills a min and max threshold
+                        if (point_a_color == Cone.UNKNOWN and point_b_color == Cone.UNKNOWN):
+                            if get_distance(point_a, point_b) >= UNKNOWN_EDGE_DISTANCE_MINIMUM and get_distance(point_a, point_b) < UNKNOWN_EDGE_DISTANCE_MAXIMUM:
+                                midpoint = get_midpoint(point_a, point_b)
+                                midpoints.append(midpoint)
+                                logging.debug(f'Add as Midpoint: {midpoint}')
                         # don't use midpoints between two edges with the same tag (e.g. yellow<->yellow or blue<->blue)
                         # and use midpoint only if distance between edges is not too big
-                        if point_a_color != Cone.UNKNOWN and point_b_color != Cone.UNKNOWN and point_a_color != point_b_color and get_distance(point_a, point_b) <= EDGE_DISTANCE_THRESHOLD:
-                            midpoint = get_midpoint(point_a, point_b)
-                            midpoints.append(midpoint)
-                            logging.debug(
-                                f'Add as Midpoint: {midpoint}')
+                        else:
+                            if point_a_color != Cone.UNKNOWN and point_b_color != Cone.UNKNOWN and point_a_color != point_b_color and get_distance(point_a, point_b) <= EDGE_DISTANCE_THRESHOLD:
+                                midpoint = get_midpoint(point_a, point_b)
+                                midpoints.append(midpoint)
+                                logging.debug(f'Add as Midpoint: {midpoint}')
 
                         if midpoints:
                             # sort midpoints by distance => furthest midpoint comes last

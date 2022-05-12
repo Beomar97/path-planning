@@ -17,6 +17,8 @@ class TrackConfig:
         CONE_DISTANCE_THRESHOLD = 6
         CONES_THRESHOLD = 3
         EDGE_DISTANCE_THRESHOLD = 5
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 3
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 5
         NR_OF_CONES = 45
 
     class Skidpad:
@@ -41,6 +43,8 @@ class TrackConfig:
         CONE_DISTANCE_THRESHOLD = 9
         CONES_THRESHOLD = 3
         EDGE_DISTANCE_THRESHOLD = 7
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 3
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 5
         NR_OF_CONES = 70
 
     class Rand:
@@ -52,15 +56,32 @@ class TrackConfig:
         CONE_DISTANCE_THRESHOLD = 15
         CONES_THRESHOLD = 3
         EDGE_DISTANCE_THRESHOLD = 12
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 6
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 9
         NR_OF_CONES = 211
 
-    class Comp2021:  # need to edit vehicle config of optimization alg
+    class Comp2021:  # optimization not possible for current vehicle parameters
         """Configuration for track 'Comp 2021' (comp_2021.csv)."""
 
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=20.92226, vehicle_position_y=-14.0325, yaw=0.0, vehicle_velocity=0.0)
-        POSITION_DISTANCE_THRESHOLD = 10
+        POSITION_DISTANCE_THRESHOLD = 25
         CONE_DISTANCE_THRESHOLD = 4
         CONES_THRESHOLD = 3
         EDGE_DISTANCE_THRESHOLD = 4
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 1
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 2
         NR_OF_CONES = 314
+
+    class GardenLight:  # optimization not possible for current vehicle parameters
+        """Configuration for track 'Garden Light' (garden_light.csv)."""
+
+        START_CURRENT_POSITION = CurrentPosition(
+            vehicle_position_x=0.0, vehicle_position_y=-0.0, yaw=0.0, vehicle_velocity=0.0)
+        POSITION_DISTANCE_THRESHOLD = 15
+        CONE_DISTANCE_THRESHOLD = 6
+        CONES_THRESHOLD = 3
+        EDGE_DISTANCE_THRESHOLD = 5
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 1
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 2
+        NR_OF_CONES = 204

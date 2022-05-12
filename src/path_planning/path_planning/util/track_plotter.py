@@ -19,7 +19,7 @@ def main():
     big_orange_cones = []
     car_start = []
 
-    with open(os.getcwd() + '/src/path_planning/resource/maps/original/' + sys.argv[1]) as csv_file:
+    with open(os.getcwd() + '/src/path_planning/resource/maps/' + sys.argv[1]) as csv_file:
         csv_reader = csv.DictReader(csv_file, delimiter=',')
         for row in csv_reader:
             cones.append([float(row['x']), float(row['y'])])

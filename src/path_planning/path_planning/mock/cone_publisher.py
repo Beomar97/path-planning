@@ -161,7 +161,7 @@ class ConePublisher(Node):
 
     def timer_callback(self):
         """Execute timer callback function for publishing cones."""
-        if self.i < len(self.cones):
+        if self.i < len(self.cones) - len(self.unknown_cones):
 
             if self.is_acceleration:
                 self.__handle_acceleration()

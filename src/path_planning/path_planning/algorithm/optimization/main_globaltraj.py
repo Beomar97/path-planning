@@ -22,6 +22,7 @@ from path_planning.algorithm.optimization.helper_funcs_glob.src.result_plots imp
     result_plots
 from path_planning.algorithm.optimization.opt_mintime_traj.src.opt_mintime import \
     opt_mintime
+from path_planning.model.coordinate import Coordinate
 from path_planning.model.racetrajectory import RaceTrajectory
 from path_planning.model.refpoint import Refpoint
 
@@ -35,7 +36,10 @@ This script has to be executed to generate an optimal trajectory based on a give
 
 
 def optimize_path(
-    reftrack: List[Refpoint] = None,
+    optimization_type: str = "mincurv",
+    reference_track: List[Refpoint] = None,
+    minimum_track_width: float = None,
+    num_of_laps: int = 1,
     show_plot: bool = False
 ) -> List[RaceTrajectory]:
 
@@ -68,21 +72,20 @@ def optimize_path(
     file_paths["track_name"] = "berlin_2018"
 
     # set import options ---------------------------------------------------------------------------------------------------
-    imp_opts = {"flip_imp_track": False,                # flip imported track to reverse direction
+    imp_opts = {"flip_imp_track": False,       # flip imported track to reverse direction
                 # set new starting point (changes order, not coordinates)
                 "set_new_start": False,
-                "new_start": np.array([0.0, -47.0]),    # [x_m, y_m]
+                "new_start": np.array([0.0, -47.0]),       # [x_m, y_m]
                 # [m] minimum enforced track width (set None to deactivate)
-                "min_track_width": None,
-                "num_laps": 1}                          # number of laps to be driven (significant with powertrain-option),
-    # only relevant in mintime-optimization
+                "min_track_width": minimum_track_width,
+                "num_laps": num_of_laps}                # number of laps to be driven (significant with powertrain-option), only relevant in mintime-optimization
 
     # set optimization type ------------------------------------------------------------------------------------------------
     # 'shortest_path'       shortest path optimization
     # 'mincurv'             minimum curvature optimization without iterative call
     # 'mincurv_iqp'         minimum curvature optimization with iterative call
     # 'mintime'             time-optimal trajectory optimization
-    opt_type = 'mincurv'
+    opt_type = optimization_type
 
     # set mintime specific options (mintime only) --------------------------------------------------------------------------
     # tpadata:                      set individual friction map data file if desired (e.g. for varmue maps), else set None,
@@ -249,7 +252,7 @@ def optimize_path(
     t_start = time.perf_counter()
 
     # import track
-    reftrack_imp = import_track(reftrack,
+    reftrack_imp = import_track(reftrack=reference_track,
                                 imp_opts=imp_opts,
                                 file_path=file_paths["track_file"],
                                 width_veh=pars["veh_params"]["width"])
@@ -601,7 +604,7 @@ def optimize_path(
     # ----------------------------------------------------------------------------------------------------------------------
 
     # only export to file if no reftrack is given by the path planner
-    if reftrack is None:
+    if reference_track is None:
 
         # export race trajectory  to CSV
         if "traj_race_export" in file_paths.keys():
@@ -656,5 +659,5 @@ def optimize_path(
     # RETURN OPTIMIZED RACETRAJECTORY --------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
-    if reftrack:
+    if reference_track:
         return traj_race_cl

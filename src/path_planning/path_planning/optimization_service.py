@@ -38,11 +38,15 @@ class OptimizationService(Node):
         """
         self.get_logger().info(
             f'Incoming request:\n\
+                Optimization Type: {request.optimization_type},\n\
                 Blue Cones {len(request.blue_cones_x)},\n\
                 Yellow Cones {len(request.yellow_cones_x)},\n\
                 Orange Cones {len(request.orange_cones_x)},\n\
                 Big Orange Cones {len(request.big_orange_cones_x)},\n\
-                Reference Points {len(request.refline_x)}')
+                Reference Points {len(request.refline_x)},\n\
+                Minimum Track Width: {request.minimum_track_width},\n\
+                Number of Laps: {request.num_of_laps},\n\
+                Show Plot: {request.show_plot}')
 
         # zip and map cones back to one list e.g. [x1, x2] [y1, y2] => [[x1, y1], [x2,y2]]
         blue_cones = list(
@@ -60,7 +64,12 @@ class OptimizationService(Node):
             blue_cones, yellow_cones, orange_cones, big_orange_cones, refline)
 
         # optimize path
-        optimized_path = optimize_path(reftrack, request.show_plot)
+        optimized_path = optimize_path(
+            optimization_type=request.optimization_type,
+            reference_track=reftrack,
+            minimum_track_width=request.minimum_track_width,
+            num_of_laps=request.num_of_laps,
+            show_plot=request.show_plot)
 
         # zip optimized path to response model
         response.optimized_path_s_m, response.optimized_path_x_m, response.optimized_path_y_m, response.optimized_path_psi_rad, response.optimized_path_kappa_radpm, response.optimized_path_vx_mps, response.optimized_path_ax_mps2 = zip(

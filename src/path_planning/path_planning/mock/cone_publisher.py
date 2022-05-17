@@ -17,7 +17,7 @@ class ConePublisher(Node):
     """
 
     # config
-    LAPS = 1  # how many laps to publish
+    LAPS = 2  # how many laps to publish
 
     # set constants
     MSG_TYPE = Cone

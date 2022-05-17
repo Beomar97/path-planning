@@ -28,11 +28,16 @@ class PathPlanner(Node):
     LAPS = 2
     PROD = False
 
+    # optimization config
+    OPTIMIZATION_TYPE = "mincurv"
+    MINIMUM_TRACK_WIDTH = None
+
     # testing config
     LOG_LEVEL = logging.INFO
-    SHOW_PLOT = True
+    SHOW_PLOT_EXPLORATION = False
+    SHOW_PLOT_OPTIMIZATION = False
     MOCK_CURRENT_POSITION = True
-    TRACK_CONFIG = TrackConfig.Skidpad
+    TRACK_CONFIG = TrackConfig.Rand
 
     # set constants
     EXPLORATION_VELOCITY = 5.0
@@ -146,7 +151,7 @@ class PathPlanner(Node):
                 self.orange_cones,
                 self.big_orange_cones,
                 PathPlanner.TRACK_CONFIG,
-                PathPlanner.SHOW_PLOT)
+                PathPlanner.SHOW_PLOT_EXPLORATION)
 
             if PathPlanner.MOCK_CURRENT_POSITION:
                 # set last midpoint as new current position
@@ -157,7 +162,7 @@ class PathPlanner(Node):
             self.__publish_planned_path(planned_path)
 
         else:
-            if PathPlanner.SHOW_PLOT:
+            if PathPlanner.SHOW_PLOT_EXPLORATION:
                 plt.ioff()  # deactivate interactive mode (from exploration algorithm)
 
     def __add_to_received_cones(self, next_cone: Cone):
@@ -212,14 +217,17 @@ class PathPlanner(Node):
                 if sum(1 for distance in distances_to_start_finish_cones if distance < PathPlanner.TRACK_CONFIG.EDGE_DISTANCE_THRESHOLD) \
                         >= PathPlanner.START_FINISH_CONES_NEEDED:
 
-                    if self.mode == Mode.EXPLORATION:
+                    self.laps_completed += 1  # add counter laps completed
+                    self.start_finish_cones.clear()
+
+                    if self.mode == Mode.EXPLORATION:  # switch to optimization
                         self.__prepare_optimization_request()
                         self.future = self.optimization_client.call_async(
                             self.req)
 
-                    self.laps_completed += 1
-
     def __prepare_optimization_request(self):
+        self.req.optimization_type = PathPlanner.OPTIMIZATION_TYPE
+
         self.req.blue_cones_x, self.req.blue_cones_y = zip(*self.blue_cones)
         self.req.yellow_cones_x, self.req.yellow_cones_y = zip(
             *self.yellow_cones)
@@ -228,7 +236,9 @@ class PathPlanner(Node):
         self.req.big_orange_cones_x, self.req.big_orange_cones_y = zip(
             *self.big_orange_cones) if self.big_orange_cones else [[], []]
         self.req.refline_x, self.req.refline_y = zip(*self.calculated_path)
-        self.req.show_plot = PathPlanner.SHOW_PLOT
+
+        self.req.num_of_laps = PathPlanner.LAPS - self.laps_completed
+        self.req.show_plot = PathPlanner.SHOW_PLOT_OPTIMIZATION
 
     def __publish_planned_path(self, planned_path: List[Coordinate]):
         """
@@ -284,12 +294,12 @@ def main(args=None):
     rclpy.init(args=args)
 
     path_planner = PathPlanner()
-    optimized_laps_published = 0
+    optimized_laps_published = False
 
     while rclpy.ok():
         rclpy.spin_once(path_planner)
         # check if response from optimization service has been received
-        if path_planner.future.done() and optimized_laps_published < PathPlanner.LAPS - 1:
+        if path_planner.future.done() and optimized_laps_published == False:
             try:
                 response = path_planner.future.result()
             except Exception as e:
@@ -305,7 +315,8 @@ def main(args=None):
 
                 # publish the optimized path to the autopilot
                 path_planner.publish_optimized_path(optimized_path)
-                optimized_laps_published += 1  # only publish the path for as many laps as it needs
+                # only publish the path for as many laps as it needs
+                optimized_laps_published = True
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically

@@ -5,7 +5,8 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import rclpy
-from fszhaw_msgs.msg import Cone, CurrentPosition, PlannedTrajectory
+from fs_msgs.msg import Cone
+from fszhaw_msgs.msg import CurrentPosition, PlannedTrajectory
 from interfaces.srv import OptimizePath
 from rclpy.node import Node
 from scipy.spatial.distance import cdist

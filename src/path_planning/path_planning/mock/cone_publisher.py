@@ -3,7 +3,7 @@ import os
 import sys
 
 import rclpy
-from fszhaw_msgs.msg import Cone, Track
+from fs_msgs.msg import Cone, Track
 from geometry_msgs.msg import Point
 from path_planning.model.tag import Tag
 from rclpy.node import Node

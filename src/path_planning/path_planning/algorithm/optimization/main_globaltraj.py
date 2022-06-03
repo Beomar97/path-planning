@@ -1,6 +1,7 @@
 import configparser
 import copy
 import json
+import logging
 import os
 import time
 from typing import List
@@ -43,6 +44,9 @@ def optimize_path(
     show_plot: bool = False
 ) -> List[RaceTrajectory]:
 
+    logging.basicConfig(level=logging.INFO,
+                        format='%(levelname)s:%(message)s')
+
     # ----------------------------------------------------------------------------------------------------------------------
     # USER INPUT -----------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
@@ -53,15 +57,15 @@ def optimize_path(
     # debug and plot options -----------------------------------------------------------------------------------------------
     debug = True                                    # print console messages
     plot_opts = {"mincurv_curv_lin": False,         # plot curv. linearization (original and solution based) (mincurv only)
-                 "raceline": True,                  # plot optimized path
+                 "raceline": show_plot,                  # plot optimized path
                  # plot imported bounds (analyze difference to interpolated bounds)
                  "imported_bounds": False,
-                 "raceline_curv": False,             # plot curvature profile of optimized path
-                 "racetraj_vel": False,              # plot velocity profile
-                 "racetraj_vel_3d": False,          # plot 3D velocity profile above raceline
+                 "raceline_curv": show_plot,             # plot curvature profile of optimized path
+                 "racetraj_vel": show_plot,              # plot velocity profile
+                 "racetraj_vel_3d": show_plot,          # plot 3D velocity profile above raceline
                  # [m] vertical lines stepsize in 3D velocity profile plot
                  "racetraj_vel_3d_stepsize": 1.0,
-                 "spline_normals": False,           # plot spline normals to check for crossings
+                 "spline_normals": show_plot,           # plot spline normals to check for crossings
                  "mintime_plots": False}            # plot states, controls, friction coeffs etc. (mintime only)
 
     # select track file (including centerline coordinates + track widths) --------------------------------------------------
@@ -170,8 +174,8 @@ def optimize_path(
             and not (os.path.exists(file_paths["tpadata"]) and os.path.exists(file_paths["tpamap"])):
 
         mintime_opts["var_friction"] = None
-        print("WARNING: var_friction option is not None but friction map data is missing for current track -> Setting"
-              " var_friction to None!")
+        logging.warning("WARNING: var_friction option is not None but friction map data is missing for current track -> Setting"
+                        " var_friction to None!")
 
     # create outputs folder(s)
     os.makedirs(file_paths["module"] + "/outputs", exist_ok=True)
@@ -420,9 +424,9 @@ def optimize_path(
             d_l_reopt = np.hypot(
                 raceline_reopt[:, 0] - bound_l_reopt[:, 0], raceline_reopt[:, 1] - bound_l_reopt[:, 1])
 
-            print("INFO: Mintime reoptimization: minimum distance to right/left bound: %.2fm / %.2fm"
-                  % (np.amin(d_r_reopt) - pars["veh_params"]["width"] / 2,
-                     np.amin(d_l_reopt) - pars["veh_params"]["width"] / 2))
+            logging.info("INFO: Mintime reoptimization: minimum distance to right/left bound: %.2fm / %.2fm"
+                         % (np.amin(d_r_reopt) - pars["veh_params"]["width"] / 2,
+                            np.amin(d_l_reopt) - pars["veh_params"]["width"] / 2))
 
     # ----------------------------------------------------------------------------------------------------------------------
     # INTERPOLATE SPLINES TO SMALL DISTANCES BETWEEN RACELINE POINTS -------------------------------------------------------
@@ -479,22 +483,7 @@ def optimize_path(
     t_profile_cl = tph.calc_t_profile.calc_t_profile(vx_profile=vx_profile_opt,
                                                      ax_profile=ax_profile_opt,
                                                      el_lengths=el_lengths_opt_interp)
-    print("INFO: Estimated laptime: %.2fs" % t_profile_cl[-1])
-
-    if show_plot:
-        if plot_opts["racetraj_vel"]:
-            s_points = np.cumsum(el_lengths_opt_interp[:-1])
-            s_points = np.insert(s_points, 0, 0.0)
-
-            plt.plot(s_points, vx_profile_opt)
-            plt.plot(s_points, ax_profile_opt)
-            plt.plot(s_points, t_profile_cl[:-1])
-
-            plt.grid()
-            plt.xlabel("distance in m")
-            plt.legend(["vx in m/s", "ax in m/s2", "t in s"])
-
-            plt.show()
+    logging.info("INFO: Estimated laptime: %.2fs" % t_profile_cl[-1])
 
     # ----------------------------------------------------------------------------------------------------------------------
     # CALCULATE LAP TIMES (AT DIFFERENT SCALES AND TOP SPEEDS) -------------------------------------------------------------
@@ -579,8 +568,10 @@ def optimize_path(
     traj_race_cl[-1, 0] = np.sum(spline_data_opt[:, 0])  # set correct length
 
     # print end time
-    print("INFO: Runtime from import to final trajectory was %.2fs" %
-          (time.perf_counter() - t_start))
+    logging.info("INFO: Runtime from import to final trajectory was %.2fs" %
+                 (time.perf_counter() - t_start))
+
+    logging.info("INFO: Total Reference Points %.0f" % (len(traj_race_cl)))
 
     # ----------------------------------------------------------------------------------------------------------------------
     # CHECK TRAJECTORY -----------------------------------------------------------------------------------------------------
@@ -620,13 +611,28 @@ def optimize_path(
                              normvec_normalized=normvec_normalized_interp,
                              alpha_opt=alpha_opt)
 
-        print("INFO: Finished export of trajectory:", time.strftime("%H:%M:%S"))
+        logging.info("INFO: Finished export of trajectory:",
+                     time.strftime("%H:%M:%S"))
 
     # ----------------------------------------------------------------------------------------------------------------------
     # PLOT RESULTS ---------------------------------------------------------------------------------------------------------
     # ----------------------------------------------------------------------------------------------------------------------
 
     if show_plot:
+
+        if plot_opts["racetraj_vel"]:
+            s_points = np.cumsum(el_lengths_opt_interp[:-1])
+            s_points = np.insert(s_points, 0, 0.0)
+
+            plt.plot(s_points, vx_profile_opt)
+            plt.plot(s_points, ax_profile_opt)
+            plt.plot(s_points, t_profile_cl[:-1])
+
+            plt.grid()
+            plt.xlabel("distance in m")
+            plt.legend(["vx in m/s", "ax in m/s2", "t in s"])
+
+            plt.show()
 
         # get bound of imported map (for reference in final plot)
         bound1_imp = None

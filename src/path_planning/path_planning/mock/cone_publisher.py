@@ -16,17 +16,19 @@ class ConePublisher(Node):
     A mock for publishing cones to the Path Planner.
     """
 
-    # config
-    LAPS = 2  # how many laps to publish
+    # default parameters
+    TRACK_NAME = 'sim_tool'
+    LAPS = 2
 
     # set constants
     MSG_TYPE = Cone
-    TOPIC = "cone"
+    TOPIC = 'cone'
     QUEUE_SIZE = 10
     TIMER_PERIOD = 0.1  # seconds
 
     # init class variables
     is_acceleration = False
+    is_skidpad = False
     cones = []
     blue_cones = []
     yellow_cones = []
@@ -51,22 +53,18 @@ class ConePublisher(Node):
         creates a subscribtion to receive the track from the simulation tool.
         """
         super().__init__("cone_publisher")
+        # track_name ros parameter
+        self.declare_parameter('track_name', ConePublisher.TRACK_NAME)
+        self.track_name = self.get_parameter(
+            'track_name').get_parameter_value().string_value
 
-        if len(sys.argv) >= 2:
+        # laps ros parameter
+        self.declare_parameter('laps', ConePublisher.LAPS)
+        self.laps = self.get_parameter(
+            'laps').get_parameter_value().integer_value
 
-            self.is_acceleration = sys.argv[1].startswith("acceleration")
-            self.is_skidpad = sys.argv[1].startswith("skidpad")
+        if self.track_name == 'sim_tool':
 
-            if self.is_skidpad:
-                self.__load_map('skidpad_parts/skidpad_start.csv')
-                self.__load_map('skidpad_parts/skidpad_right.csv')
-                self.__load_map('skidpad_parts/skidpad_left.csv')
-                self.__load_map('skidpad_parts/skidpad_end.csv')
-            else:
-                # load track information from csv
-                self.__load_map(sys.argv[1])
-
-        else:
             self.get_logger().info(
                 f'Receiving track from Simulation Tool at topic testing_only/track')
             self.track_subscription = self.create_subscription(
@@ -75,6 +73,20 @@ class ConePublisher(Node):
                 self.__track_listener_callback,
                 10)
             self.track_subscription  # prevent unused variable warning
+
+        else:
+
+            self.is_acceleration = self.track_name.startswith("acceleration")
+            self.is_skidpad = self.track_name.startswith("skidpad")
+
+            if self.is_skidpad:
+                self.__load_map('skidpad_parts/skidpad_start.csv')
+                self.__load_map('skidpad_parts/skidpad_right.csv')
+                self.__load_map('skidpad_parts/skidpad_left.csv')
+                self.__load_map('skidpad_parts/skidpad_end.csv')
+            else:
+                # load track information from csv
+                self.__load_map(self.track_name)
 
         self.publisher_ = self.create_publisher(
             ConePublisher.MSG_TYPE,
@@ -121,6 +133,12 @@ class ConePublisher(Node):
                     self.unknown_cones.append(
                         [row["tag"], float(row["x"]), float(row["y"])]
                     )
+        self.get_logger().info(f'Blue Cones: {len(self.blue_cones)}')
+        self.get_logger().info(f'Yellow Cones: {len(self.yellow_cones)}')
+        self.get_logger().info(f'Orange Cones: {len(self.orange_cones)}')
+        self.get_logger().info(
+            f'Big Orange Cones: {len(self.big_orange_cones)}')
+        self.get_logger().info(f'Unknown Cones: {len(self.unknown_cones)}')
 
     def __track_listener_callback(self, msg):
         """
@@ -173,7 +191,7 @@ class ConePublisher(Node):
             self.i += 1
 
         else:
-            if self.LAPS > self.current_lap:
+            if self.laps > self.current_lap:
                 self.__reset_indexes()
 
     def __handle_acceleration(self):
@@ -231,7 +249,7 @@ class ConePublisher(Node):
         y = cone[2]
         z = 0.0
 
-        self.get_logger().info(f"Publishing {self.i}: {color}, {x}, {y}")
+        self.get_logger().debug(f"Publishing {self.i}: {color}, {x}, {y}")
         self.publisher_.publish(
             Cone(color=color, location=Point(x=x, y=y, z=z)))
 

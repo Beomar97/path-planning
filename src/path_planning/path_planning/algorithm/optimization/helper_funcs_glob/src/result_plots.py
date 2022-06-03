@@ -37,11 +37,15 @@ def result_plots(plot_opts: dict,
         normvec_normalized_opt = trajectory_planning_helpers.calc_normal_vectors.\
             calc_normal_vectors(trajectory[:, 3])
 
-        veh_bound1_virt = trajectory[:, 1:3] + normvec_normalized_opt * width_veh_opt / 2
-        veh_bound2_virt = trajectory[:, 1:3] - normvec_normalized_opt * width_veh_opt / 2
+        veh_bound1_virt = trajectory[:, 1:3] + \
+            normvec_normalized_opt * width_veh_opt / 2
+        veh_bound2_virt = trajectory[:, 1:3] - \
+            normvec_normalized_opt * width_veh_opt / 2
 
-        veh_bound1_real = trajectory[:, 1:3] + normvec_normalized_opt * width_veh_real / 2
-        veh_bound2_real = trajectory[:, 1:3] - normvec_normalized_opt * width_veh_real / 2
+        veh_bound1_real = trajectory[:, 1:3] + \
+            normvec_normalized_opt * width_veh_real / 2
+        veh_bound2_real = trajectory[:, 1:3] - \
+            normvec_normalized_opt * width_veh_real / 2
 
         point1_arrow = refline[0]
         point2_arrow = refline[3]
@@ -49,18 +53,27 @@ def result_plots(plot_opts: dict,
 
         # plot track including optimized path
         plt.figure()
-        plt.plot(refline[:, 0], refline[:, 1], "k--", linewidth=0.7)
-        plt.plot(veh_bound1_virt[:, 0], veh_bound1_virt[:, 1], "b", linewidth=0.5)
-        plt.plot(veh_bound2_virt[:, 0], veh_bound2_virt[:, 1], "b", linewidth=0.5)
-        plt.plot(veh_bound1_real[:, 0], veh_bound1_real[:, 1], "c", linewidth=0.5)
-        plt.plot(veh_bound2_real[:, 0], veh_bound2_real[:, 1], "c", linewidth=0.5)
-        plt.plot(bound1_interp[:, 0], bound1_interp[:, 1], "k-", linewidth=0.7)
-        plt.plot(bound2_interp[:, 0], bound2_interp[:, 1], "k-", linewidth=0.7)
-        plt.plot(trajectory[:, 1], trajectory[:, 2], "r-", linewidth=0.7)
+        plt.plot(refline[:, 0], refline[:, 1], "k--",
+                 linewidth=0.7, label='Reference Line')
+        plt.plot(veh_bound1_virt[:, 0], veh_bound1_virt[:, 1], "b",
+                 linewidth=0.5, label='Vehicle Width with Safety Distance')
+        plt.plot(veh_bound2_virt[:, 0],
+                 veh_bound2_virt[:, 1], "b", linewidth=0.5)
+        plt.plot(veh_bound1_real[:, 0], veh_bound1_real[:, 1],
+                 "c", linewidth=0.5, label='Vehicle Width')
+        plt.plot(veh_bound2_real[:, 0],
+                 veh_bound2_real[:, 1], "c", linewidth=0.5)
+        plt.plot(bound1_interp[:, 0], bound1_interp[:, 1],
+                 "k-", label='Track Limits')
+        plt.plot(bound2_interp[:, 0], bound2_interp[:, 1], "k-")
+        plt.plot(trajectory[:, 1], trajectory[:, 2],
+                 "r-", label='Race Line')
 
         if plot_opts["imported_bounds"] and bound1_imp is not None and bound2_imp is not None:
             plt.plot(bound1_imp[:, 0], bound1_imp[:, 1], "y-", linewidth=0.7)
             plt.plot(bound2_imp[:, 0], bound2_imp[:, 1], "y-", linewidth=0.7)
+
+        plt.legend()
 
         plt.grid()
         ax = plt.gca()
@@ -90,12 +103,15 @@ def result_plots(plot_opts: dict,
         ax = fig.gca(projection='3d')
 
         # recast get_proj function to use scaling factors for the axes
-        ax.get_proj = lambda: np.dot(Axes3D.get_proj(ax), np.diag([scale_x, scale_y, scale_z, 1.0]))
+        ax.get_proj = lambda: np.dot(Axes3D.get_proj(
+            ax), np.diag([scale_x, scale_y, scale_z, 1.0]))
 
         # plot raceline and boundaries
         ax.plot(refline[:, 0], refline[:, 1], "k--", linewidth=0.7)
-        ax.plot(bound1_interp[:, 0], bound1_interp[:, 1], 0.0, "k-", linewidth=0.7)
-        ax.plot(bound2_interp[:, 0], bound2_interp[:, 1], 0.0, "k-", linewidth=0.7)
+        ax.plot(bound1_interp[:, 0], bound1_interp[:, 1],
+                0.0, "k-", linewidth=0.7)
+        ax.plot(bound2_interp[:, 0], bound2_interp[:, 1],
+                0.0, "k-", linewidth=0.7)
         ax.plot(trajectory[:, 1], trajectory[:, 2], "r-", linewidth=0.7)
 
         ax.grid()
@@ -104,11 +120,13 @@ def result_plots(plot_opts: dict,
         ax.set_ylabel("north in m")
 
         # plot velocity profile in 3D
-        ax.plot(trajectory[:, 1], trajectory[:, 2], trajectory[:, 5], color="k")
+        ax.plot(trajectory[:, 1], trajectory[:, 2],
+                trajectory[:, 5], color="k")
         ax.set_zlabel("velocity in m/s")
 
         # plot vertical lines visualizing acceleration and deceleration zones
-        ind_stepsize = int(np.round(plot_opts["racetraj_vel_3d_stepsize"] / trajectory[1, 0] - trajectory[0, 0]))
+        ind_stepsize = int(np.round(
+            plot_opts["racetraj_vel_3d_stepsize"] / trajectory[1, 0] - trajectory[0, 0]))
         if ind_stepsize < 1:
             ind_stepsize = 1
 
@@ -118,7 +136,8 @@ def result_plots(plot_opts: dict,
         while cur_ind < no_points_traj_vdc - 1:
             x_tmp = [trajectory[cur_ind, 1], trajectory[cur_ind, 1]]
             y_tmp = [trajectory[cur_ind, 2], trajectory[cur_ind, 2]]
-            z_tmp = [0.0, trajectory[cur_ind, 5]]  # plot line with height depending on velocity
+            # plot line with height depending on velocity
+            z_tmp = [0.0, trajectory[cur_ind, 5]]
 
             # get proper color for line depending on acceleration
             if trajectory[cur_ind, 6] > 0.0:

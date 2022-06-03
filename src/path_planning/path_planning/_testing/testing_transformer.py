@@ -25,7 +25,7 @@ def main():
 
     plt.show()
 
-    main_globaltraj.optimize_path(reftrack)
+    main_globaltraj.optimize_path(reference_track=reftrack, show_plot=True)
 
 
 if __name__ == '__main__':

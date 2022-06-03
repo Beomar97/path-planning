@@ -12,6 +12,7 @@
   <depend>interfaces</depend>
   <depend>std_msgs</depend>
 
+  <exec_depend>ros2launch</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python3-scipy</exec_depend>
   <exec_depend>python-numpy</exec_depend>

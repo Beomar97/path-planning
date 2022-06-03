@@ -85,3 +85,16 @@ class TrackConfig:
         UNKNOWN_EDGE_DISTANCE_MINIMUM = 1
         UNKNOWN_EDGE_DISTANCE_MAXIMUM = 2
         NR_OF_CONES = 204
+
+    class Default:
+        """Default configuration for tracks."""
+
+        START_CURRENT_POSITION = CurrentPosition(
+            vehicle_position_x=0.0, vehicle_position_y=-0.0, yaw=0.0, vehicle_velocity=0.0)
+        POSITION_DISTANCE_THRESHOLD = 15
+        CONE_DISTANCE_THRESHOLD = 6
+        CONES_THRESHOLD = 3
+        EDGE_DISTANCE_THRESHOLD = 5
+        UNKNOWN_EDGE_DISTANCE_MINIMUM = 1
+        UNKNOWN_EDGE_DISTANCE_MAXIMUM = 2
+        NR_OF_CONES = 200

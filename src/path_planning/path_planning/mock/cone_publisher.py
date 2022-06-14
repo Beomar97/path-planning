@@ -24,7 +24,7 @@ class ConePublisher(Node):
     MSG_TYPE = Cone
     TOPIC = 'cone'
     QUEUE_SIZE = 10
-    TIMER_PERIOD = 0.1  # seconds
+    TIMER_PERIOD = 0.2  # seconds
 
     # init class variables
     is_acceleration = False
@@ -179,20 +179,21 @@ class ConePublisher(Node):
 
     def timer_callback(self):
         """Execute timer callback function for publishing cones."""
-        if self.i < len(self.cones) - len(self.unknown_cones):
+        if self.track_name != 'sim_tool' or (self.track_name == 'sim_tool' and self.track_received):
+            if self.i < len(self.cones) - len(self.unknown_cones):
 
-            if self.is_acceleration:
-                self.__handle_acceleration()
-            elif self.is_skidpad:
-                self.__handle_skidpad()
+                if self.is_acceleration:
+                    self.__handle_acceleration()
+                elif self.is_skidpad:
+                    self.__handle_skidpad()
+                else:
+                    self.__handle_trackdrive()
+
+                self.i += 1
+
             else:
-                self.__handle_trackdrive()
-
-            self.i += 1
-
-        else:
-            if self.laps > self.current_lap:
-                self.__reset_indexes()
+                if self.laps > self.current_lap:
+                    self.__reset_indexes()
 
     def __handle_acceleration(self):
         """Publish cones logic for acceleration track."""

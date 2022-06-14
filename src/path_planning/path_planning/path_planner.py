@@ -1,4 +1,5 @@
 import logging
+import math
 import time
 from asyncio import Future
 from typing import List
@@ -15,6 +16,7 @@ from path_planning.algorithm.exploration.exploration import Exploration
 from path_planning.model.coordinate import Coordinate
 from path_planning.model.mode import Mode
 from path_planning.model.racetrajectory import RaceTrajectory
+from path_planning.model.setup import Setup
 from path_planning.track_config import TrackConfig
 
 
@@ -33,7 +35,7 @@ class PathPlanner(Node):
     SHOW_PLOT_EXPLORATION = False
     SHOW_PLOT_OPTIMIZATION = False
     MOCK_CURRENT_POSITION = True
-    TRACK_NAME = "small_track.csv"
+    TRACK_NAME = "sim_tool"
 
     # logging
     LOG_LEVEL = logging.INFO
@@ -48,20 +50,18 @@ class PathPlanner(Node):
     index = 0
     laps_completed = 0
     exploration_cycle_times = []
-
-    track_config = TrackConfig.SmallTrack
+    track_config = TrackConfig.Default
+    setup = Setup.TRACK_DRIVE
     current_position = CurrentPosition(
-        vehicle_position_x=0.0, vehicle_position_y=-0.0, yaw=0.0, vehicle_velocity=0.0)
+        vehicle_position_x=0.0, vehicle_position_y=0.0, yaw=0.0, vehicle_velocity=0.0)
     all_cones = []
     blue_cones = []
     yellow_cones = []
     orange_cones = []
     big_orange_cones = []
     unknown_cones = []
-
     calculated_path = []
     optimized_path = []
-
     start_finish_cones = []
 
     def __init__(self):
@@ -158,10 +158,11 @@ class PathPlanner(Node):
 
         :param current_position: The updated current position of the vehicle.
         """
-        logging.debug('-----------------------')
-        logging.debug(
-            f'Set new Position: x:{current_position.vehicle_position_x} y:{current_position.vehicle_position_y}')
-        self.current_position = current_position
+        if PathPlanner.MOCK_CURRENT_POSITION != True:
+            logging.info('-----------------------')
+            logging.info(
+                f'Set new Position: x:{current_position.vehicle_position_x} y:{current_position.vehicle_position_y}')
+            self.current_position = current_position
 
     def __cone_listener_callback(self, next_cone: Cone):
         """
@@ -205,7 +206,7 @@ class PathPlanner(Node):
 
             if self.mock_current_position:
                 # set last midpoint as new current position
-                self.__current_position_listener_callback(last_midpoint)
+                self.current_position = last_midpoint
 
             # publish planned path
             self.calculated_path.extend(planned_path)
@@ -218,18 +219,22 @@ class PathPlanner(Node):
     def __set_track_config(self, track_name: str):
         if track_name == 'acceleration.csv':
             self.track_config = TrackConfig.Acceleration
+            self.setup = Setup.ACCELERATION
         elif track_name == 'skidpad.csv':
             self.track_config = TrackConfig.Skidpad
-        elif track_name == 'small_track.csv':
-            self.track_config = TrackConfig.SmallTrack
-        elif track_name == 'rand.csv':
-            self.track_config = TrackConfig.Rand
-        elif track_name == 'comp_2021.csv':
-            self.track_config = TrackConfig.Comp2021
-        elif track_name == 'garden_light.csv':
-            self.track_config = TrackConfig.GardenLight
+            self.setup = Setup.SKID_PAD
         else:
-            self.track_config = TrackConfig.Default
+            self.setup = Setup.TRACK_DRIVE
+            if track_name == 'small_track.csv':
+                self.track_config = TrackConfig.SmallTrack
+            elif track_name == 'rand.csv':
+                self.track_config = TrackConfig.Rand
+            elif track_name == 'comp_2021.csv':
+                self.track_config = TrackConfig.Comp2021
+            elif track_name == 'garden_light.csv':
+                self.track_config = TrackConfig.GardenLight
+            else:
+                self.track_config = TrackConfig.Default
 
         self.current_position = self.track_config.START_CURRENT_POSITION
 

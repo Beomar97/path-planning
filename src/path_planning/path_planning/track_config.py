@@ -90,7 +90,7 @@ class TrackConfig:
         """Default configuration for tracks."""
 
         START_CURRENT_POSITION = CurrentPosition(
-            vehicle_position_x=0.0, vehicle_position_y=-0.0, yaw=0.0, vehicle_velocity=0.0)
+            vehicle_position_x=0.0, vehicle_position_y=0.0, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 20
         CONE_DISTANCE_THRESHOLD = 12
         CONES_THRESHOLD = 3

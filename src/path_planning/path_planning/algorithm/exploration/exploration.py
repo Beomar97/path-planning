@@ -21,7 +21,7 @@ class Exploration:
     """
 
     # how many points should be used for cubic spline interpolation (smoothing)
-    NR_OF_SPLINE_POINTS = 20
+    NR_OF_SPLINE_POINTS = 10
 
     def calculate_path(
         current_position: CurrentPosition,

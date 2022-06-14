@@ -35,7 +35,7 @@ class OptimizationInputTransformer:
         refpoints_to_use = []
 
         # number of refpoints to use = max len of blue or yellow cones
-        if len(blue_cones) < len(yellow_cones):
+        if len(blue_cones) > len(yellow_cones):
             for blue_cone in blue_cones:
                 nearest_refpoint = refline[cdist(
                     [blue_cone], refline).argmin()]

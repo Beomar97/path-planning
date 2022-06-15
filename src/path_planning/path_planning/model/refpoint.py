@@ -1,3 +1,4 @@
+"""Reference Point model module."""
 
 
 class Refpoint:

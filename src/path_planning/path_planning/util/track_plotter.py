@@ -1,3 +1,4 @@
+"""Track Plotter module."""
 import csv
 import os
 import sys

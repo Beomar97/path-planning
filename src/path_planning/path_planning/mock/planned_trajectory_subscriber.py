@@ -1,3 +1,6 @@
+"""Planned Trajectory Subscriber module."""
+import logging
+
 import rclpy
 from fszhaw_msgs.msg import PlannedTrajectory
 from rclpy.node import Node
@@ -10,9 +13,17 @@ class PlannedTrajectorySubscriber(Node):
     Subscribes on the planned trajectory topic.
     """
 
+    # logging
+    LOG_LEVEL = logging.INFO
+
     def __init__(self):
         """Initialize the subscriber."""
         super().__init__('planned_trajectory_subscriber')
+
+        # set logging level and format
+        logging.basicConfig(level=PlannedTrajectorySubscriber.LOG_LEVEL,
+                            format='%(levelname)s:%(message)s')
+
         self.subscription = self.create_subscription(
             PlannedTrajectory,
             'planned_trajectory',
@@ -25,9 +36,8 @@ class PlannedTrajectorySubscriber(Node):
         Execute callback function.
 
         :param planned_trajectory: The receiving planned trajectory.
-
         """
-        self.get_logger().info(
+        logging.info(
             f'Received: i:{planned_trajectory.index} \
                 x:{planned_trajectory.target_x} \
                 y:{planned_trajectory.target_y} \
@@ -39,7 +49,6 @@ def main(args=None):
     Run the subscriber.
 
     :param args: Additional arguments (Default value = None).
-
     """
     rclpy.init(args=args)
 

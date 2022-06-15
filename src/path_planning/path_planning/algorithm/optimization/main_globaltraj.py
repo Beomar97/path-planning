@@ -43,7 +43,16 @@ def optimize_path(
     num_of_laps: int = 1,
     show_plot: bool = False
 ) -> List[RaceTrajectory]:
+    """
+    Optimize the path of a given reference track.
 
+    :param optimization type: The objective of the optimization ('shortest_path', 'mincurv', 'mincurv_iqp', 'mintime').
+    :param reference track: The reference track as a list of reference points.
+    :param minimum_track_width: The minimum track width to enforce for optimization.
+    :param num_of_laps: The number of laps to generate the path for.
+    :param show_plot: If plots should be created.
+    :returns: The response containing the optimized path.
+    """
     logging.basicConfig(level=logging.INFO,
                         format='%(levelname)s:%(message)s')
 

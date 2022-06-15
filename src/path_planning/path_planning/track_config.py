@@ -1,3 +1,4 @@
+"""Track Config module."""
 from fszhaw_msgs.msg import CurrentPosition
 
 
@@ -11,6 +12,7 @@ class TrackConfig:
     class Acceleration:
         """Configuration for track 'Acceleration' (acceleration.csv)."""
 
+        NAME = 'Acceleration'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=-49.95, vehicle_position_y=0.0, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 20
@@ -24,6 +26,7 @@ class TrackConfig:
     class Skidpad:
         """Configuration for track 'Skidpad' (skidpad.csv)."""
 
+        NAME = 'Skidpad'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=-0.0, vehicle_position_y=-14.4, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 15
@@ -37,6 +40,7 @@ class TrackConfig:
     class SmallTrack:
         """Configuration for track 'SmallTrack' (small_track.csv)."""
 
+        NAME = 'Small Track'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=-13.0, vehicle_position_y=10.3, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 20
@@ -50,6 +54,7 @@ class TrackConfig:
     class Rand:
         """Configuration for track 'Rand' (rand.csv)."""
 
+        NAME = 'Rand'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=53.0, vehicle_position_y=11.0, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 20
@@ -60,9 +65,10 @@ class TrackConfig:
         UNKNOWN_EDGE_DISTANCE_MAXIMUM = 9
         NR_OF_CONES = 211
 
-    class Comp2021:  # optimization not possible for current vehicle parameters
+    class Comp2021:  # set minimum_track_width to >= 4.0 for optimization
         """Configuration for track 'Comp 2021' (comp_2021.csv)."""
 
+        NAME = 'Competition 2021'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=20.92226, vehicle_position_y=-14.0325, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 25
@@ -73,9 +79,10 @@ class TrackConfig:
         UNKNOWN_EDGE_DISTANCE_MAXIMUM = 2
         NR_OF_CONES = 314
 
-    class GardenLight:  # optimization not possible for current vehicle parameters
+    class GardenLight:  # set minimum_track_width to >= 4.0 for optimization
         """Configuration for track 'Garden Light' (garden_light.csv)."""
 
+        NAME = 'Garden Light'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=0.0, vehicle_position_y=-0.0, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 15
@@ -89,6 +96,7 @@ class TrackConfig:
     class Default:
         """Default configuration for tracks."""
 
+        NAME = 'Default'
         START_CURRENT_POSITION = CurrentPosition(
             vehicle_position_x=0.0, vehicle_position_y=0.0, yaw=0.0, vehicle_velocity=0.0)
         POSITION_DISTANCE_THRESHOLD = 20

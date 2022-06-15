@@ -1,3 +1,4 @@
+"""Optimization Input Transformer module."""
 import math
 from typing import List
 
@@ -29,7 +30,6 @@ class OptimizationInputTransformer:
         :param big_orange_cones: All big orange cones used during exploration.
         :param refline: Reference line of the track (e.g. a middle line).
         :returns: reference track including the reference points and its distance to the track limits.
-
         """
         reftrack = []
         refpoints_to_use = []
@@ -60,6 +60,7 @@ class OptimizationInputTransformer:
             dist_yellow = math.hypot(
                 nearest_yellow_cone[0] - refpoint[0], nearest_yellow_cone[1] - refpoint[1])
 
+            # mark an orange cone as a blue or yellow cone, depending on its position
             if orange_cones:
                 nearest_orange_cone = orange_cones[cdist(
                     [refpoint], orange_cones).argmin()]
@@ -69,6 +70,8 @@ class OptimizationInputTransformer:
                     dist_blue = dist_orange
                 if dist_orange < dist_yellow:
                     dist_yellow = dist_orange
+
+             # mark a big orange cone as a blue or yellow cone, depending on its position
             if big_orange_cones:
                 nearest_big_orange_cone = big_orange_cones[cdist(
                     [refpoint], big_orange_cones).argmin()]

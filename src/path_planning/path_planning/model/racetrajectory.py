@@ -1,3 +1,4 @@
+"""Race Trajectory model module."""
 
 
 class RaceTrajectory:
@@ -18,7 +19,6 @@ class RaceTrajectory:
         :param kappa_radpm: float32, rad/meter. Curvature of raceline in current point.
         :param vx_mps: float32, meter/second. Target velocity in current point.
         :param ax_mps2: float32, meter/second². Target acceleration in current point. We assume this acceleration to be constant from current point until next point.
-
         """
         self.s_m = s_m
         self.x_m = x_m

@@ -1,6 +1,6 @@
+"""Exploration Algorithm module."""
 import itertools
 import logging
-import math
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -8,6 +8,7 @@ import numpy as np
 from fszhaw_msgs.msg import Cone, CurrentPosition
 from path_planning.model.coordinate import Coordinate
 from path_planning.track_config import TrackConfig
+from path_planning.util.path_planning_helpers import get_distance, get_midpoint
 from scipy import interpolate
 from scipy.spatial import Delaunay
 from scipy.spatial.distance import cdist
@@ -30,7 +31,8 @@ class Exploration:
         yellow_cones: List[Coordinate],
         orange_cones: List[Coordinate],
         big_orange_cones: List[Coordinate],
-        track_config, show_plot: bool = False
+        track_config: TrackConfig,
+        show_plot: bool = False
     ) -> Tuple[float, List[Coordinate]]:
         """
         Calculate the path for the vehicle given the current position, the receiving cone and the past received cones.
@@ -44,7 +46,6 @@ class Exploration:
         :param track_config: Config of the track housing the different thresholds and more.
         :param show_plot: If the calculated path and more should be plotted (Default value = False).
         :returns: An updated current position (testing only) and the planned path.
-
         """
         # get thresholds from track config
         POSITION_DISTANCE_THRESHOLD = track_config.POSITION_DISTANCE_THRESHOLD
@@ -210,36 +211,6 @@ class Exploration:
         return current_position, planned_path
 
 
-def get_distance(
-    point_a: float,
-    point_b: float
-) -> float:
-    """
-    Get distance between two points.
-
-    :param point_a: Point a.
-    :param point_b: Point b.
-    :returns: Distance between point a and point b.
-
-    """
-    return math.sqrt((point_a[0] - point_b[0]) ** 2 + (point_a[1] - point_b[1]) ** 2)
-
-
-def get_midpoint(
-    point_a: float,
-    point_b: float
-) -> float:
-    """
-    Get the midpoint between two points.
-
-    :param point_a: Point a.
-    :param point_b: Point b.
-    :returns: Midpoint between point a and point b.
-
-    """
-    return [(point_a[0] + point_b[0]) / 2, (point_a[1] + point_b[1]) / 2]
-
-
 def determine_color(
     point: Coordinate,
     next_cone: Cone,
@@ -256,7 +227,6 @@ def determine_color(
     :param blue_cones: All previously received blue cones.
     :param yellow_cones: All previously received yellow cones.
     :returns: Color of the cone (blue, yellow, orange or big orange).
-
     """
     if point in blue_cones:
         point_color = Cone.BLUE

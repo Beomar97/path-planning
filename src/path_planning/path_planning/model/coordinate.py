@@ -1,3 +1,4 @@
+"""Coordinate model module."""
 
 
 class Coordinate:

@@ -1,6 +1,7 @@
+"""Cone Publisher module."""
 import csv
+import logging
 import os
-import sys
 
 import rclpy
 from fs_msgs.msg import Cone, Track
@@ -19,12 +20,10 @@ class ConePublisher(Node):
     # default parameters
     TRACK_NAME = 'sim_tool'
     LAPS = 2
-
-    # set constants
-    MSG_TYPE = Cone
-    TOPIC = 'cone'
-    QUEUE_SIZE = 10
     TIMER_PERIOD = 0.2  # seconds
+
+    # logging
+    LOG_LEVEL = logging.INFO
 
     # init class variables
     is_acceleration = False
@@ -53,19 +52,17 @@ class ConePublisher(Node):
         creates a subscribtion to receive the track from the simulation tool.
         """
         super().__init__("cone_publisher")
-        # track_name ros parameter
-        self.declare_parameter('track_name', ConePublisher.TRACK_NAME)
-        self.track_name = self.get_parameter(
-            'track_name').get_parameter_value().string_value
 
-        # laps ros parameter
-        self.declare_parameter('laps', ConePublisher.LAPS)
-        self.laps = self.get_parameter(
-            'laps').get_parameter_value().integer_value
+        # set logging level and format
+        logging.basicConfig(level=ConePublisher.LOG_LEVEL,
+                            format='%(levelname)s:%(message)s')
+
+        # initialize ROS parameters
+        self.__initialize_parameters()
 
         if self.track_name == 'sim_tool':
 
-            self.get_logger().info(
+            logging.info(
                 f'Receiving track from Simulation Tool at topic testing_only/track')
             self.track_subscription = self.create_subscription(
                 Track,
@@ -89,13 +86,36 @@ class ConePublisher(Node):
                 self.__load_map(self.track_name)
 
         self.publisher_ = self.create_publisher(
-            ConePublisher.MSG_TYPE,
-            ConePublisher.TOPIC,
-            ConePublisher.QUEUE_SIZE
-        )
+            Cone,
+            'cone',
+            200)
 
         self.timer = self.create_timer(
             ConePublisher.TIMER_PERIOD, self.timer_callback)
+
+    def __initialize_parameters(self):
+        """
+        Initialize the ROS parameters.
+
+        Initializes the ROS parameters with the passed values
+        or with the default values.
+        """
+        # track_name ros parameter
+        self.declare_parameter('track_name', ConePublisher.TRACK_NAME)
+        self.track_name = self.get_parameter(
+            'track_name').get_parameter_value().string_value
+
+        # laps ros parameter
+        self.declare_parameter('laps', ConePublisher.LAPS)
+        self.laps = self.get_parameter(
+            'laps').get_parameter_value().integer_value
+
+        # laps ros parameter
+        self.declare_parameter('timer_period', ConePublisher.TIMER_PERIOD)
+        self.timer_period = self.get_parameter(
+            'timer_period').get_parameter_value().double_value
+
+        logging.info('ROS Parameters set!')
 
     def __load_map(self, filename):
         """
@@ -103,7 +123,7 @@ class ConePublisher(Node):
 
         :param filename: Filename of the csv containing the track.
         """
-        self.get_logger().info(
+        logging.info(
             f'Loading track from csv file {filename}')
         with open(
             os.getcwd() + "/src/path_planning/resource/maps/" + filename
@@ -133,12 +153,11 @@ class ConePublisher(Node):
                     self.unknown_cones.append(
                         [row["tag"], float(row["x"]), float(row["y"])]
                     )
-        self.get_logger().info(f'Blue Cones: {len(self.blue_cones)}')
-        self.get_logger().info(f'Yellow Cones: {len(self.yellow_cones)}')
-        self.get_logger().info(f'Orange Cones: {len(self.orange_cones)}')
-        self.get_logger().info(
-            f'Big Orange Cones: {len(self.big_orange_cones)}')
-        self.get_logger().info(f'Unknown Cones: {len(self.unknown_cones)}')
+        logging.info(f'Blue Cones: {len(self.blue_cones)}\n\
+            Yellow Cones: {len(self.yellow_cones)}\n\
+            Orange Cones: {len(self.orange_cones)}\n\
+            Big Orange Cones: {len(self.big_orange_cones)}\n\
+            Unknown Cones: {len(self.unknown_cones)}')
 
     def __track_listener_callback(self, msg):
         """
@@ -175,6 +194,13 @@ class ConePublisher(Node):
                         [Tag.UNKNOWN.value, cone.location.x, cone.location.y])
                     self.unknown_cones.append(
                         [Tag.UNKNOWN.value, cone.location.x, cone.location.y])
+
+            logging.info(f'Blue Cones: {len(self.blue_cones)}\n\
+                Yellow Cones: {len(self.yellow_cones)}\n\
+                Orange Cones: {len(self.orange_cones)}\n\
+                Big Orange Cones: {len(self.big_orange_cones)}\n\
+                Unknown Cones: {len(self.unknown_cones)}')
+
             self.track_received = True
 
     def timer_callback(self):
@@ -250,7 +276,7 @@ class ConePublisher(Node):
         y = cone[2]
         z = 0.0
 
-        self.get_logger().debug(f"Publishing {self.i}: {color}, {x}, {y}")
+        logging.debug(f'Publishing {self.i}: {color}, {x}, {y}')
         self.publisher_.publish(
             Cone(color=color, location=Point(x=x, y=y, z=z)))
 

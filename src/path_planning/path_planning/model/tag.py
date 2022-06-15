@@ -1,3 +1,4 @@
+"""Tag model module."""
 from enum import Enum
 
 

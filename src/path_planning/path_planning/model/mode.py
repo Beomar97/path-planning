@@ -1,3 +1,4 @@
+"""Mode model module."""
 from enum import Enum
 
 

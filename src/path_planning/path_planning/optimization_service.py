@@ -1,3 +1,6 @@
+"""Optimization Service module."""
+import logging
+
 import rclpy
 from interfaces.srv import OptimizePath
 from rclpy.node import Node
@@ -15,6 +18,9 @@ class OptimizationService(Node):
     and calculates the optimized path with it.
     """
 
+    # logging
+    LOG_LEVEL = logging.INFO
+
     def __init__(self):
         """
         Initialize the optimization service.
@@ -22,13 +28,19 @@ class OptimizationService(Node):
         Creates the ROS service.
         """
         super().__init__('optimization_service')
-        self.srv = self.create_service(
-            OptimizePath, 'optimize_path', self.__optimize_path_callback)
 
-        self.get_logger().info('-----------------------')
-        self.get_logger().info('Optimization Service initialized!')
+        # set logging level and format
+        logging.basicConfig(level=OptimizationService.LOG_LEVEL,
+                            format='%(levelname)s:%(message)s')
 
-    def __optimize_path_callback(self, request, response):
+        self.srv = self.create_service(OptimizePath,
+                                       'optimize_path',
+                                       self.__optimize_path_callback)
+
+        logging.info('-----------------------')
+        logging.info('Optimization Service initialized!')
+
+    def __optimize_path_callback(self, request: OptimizePath, response: OptimizePath):
         """
         Execute callback function when receiving the next cone.
 
@@ -36,7 +48,7 @@ class OptimizationService(Node):
         :param response: The response model.
         :returns: The response containing the optimized path.
         """
-        self.get_logger().info(
+        logging.info(
             f'Incoming request:\n\
                 Optimization Type: {request.optimization_type},\n\
                 Blue Cones {len(request.blue_cones_x)},\n\
@@ -50,33 +62,40 @@ class OptimizationService(Node):
 
         # zip and map cones back to one list e.g. [x1, x2] [y1, y2] => [[x1, y1], [x2,y2]]
         blue_cones = list(
-            map(list, zip(request.blue_cones_x, request.blue_cones_y)))
+            map(list, zip(request.blue_cones_x,
+                          request.blue_cones_y)))
         yellow_cones = list(
-            map(list, zip(request.yellow_cones_x, request.yellow_cones_y)))
+            map(list, zip(request.yellow_cones_x,
+                          request.yellow_cones_y)))
         orange_cones = list(
-            map(list, zip(request.orange_cones_x, request.orange_cones_y)))
+            map(list, zip(request.orange_cones_x,
+                          request.orange_cones_y)))
         big_orange_cones = list(
-            map(list, zip(request.big_orange_cones_x, request.big_orange_cones_y)))
-        refline = list(map(list, zip(request.refline_x, request.refline_y)))
+            map(list, zip(request.big_orange_cones_x,
+                          request.big_orange_cones_y)))
+        refline = list(
+            map(list, zip(request.refline_x,
+                          request.refline_y)))
 
         # transform input to correct format => [x, y, w_tr_right, w_tr_left]
-        reftrack = OptimizationInputTransformer.transform(
-            blue_cones, yellow_cones, orange_cones, big_orange_cones, refline)
+        reftrack = OptimizationInputTransformer.transform(blue_cones,
+                                                          yellow_cones,
+                                                          orange_cones,
+                                                          big_orange_cones,
+                                                          refline)
 
         # optimize path
-        optimized_path = optimize_path(
-            optimization_type=request.optimization_type,
-            reference_track=reftrack,
-            minimum_track_width=request.minimum_track_width,
-            num_of_laps=request.num_of_laps,
-            show_plot=request.show_plot)
+        optimized_path = optimize_path(optimization_type=request.optimization_type,
+                                       reference_track=reftrack,
+                                       minimum_track_width=request.minimum_track_width,
+                                       num_of_laps=request.num_of_laps,
+                                       show_plot=request.show_plot)
 
         # zip optimized path to response model
         response.optimized_path_s_m, response.optimized_path_x_m, response.optimized_path_y_m, response.optimized_path_psi_rad, response.optimized_path_kappa_radpm, response.optimized_path_vx_mps, response.optimized_path_ax_mps2 = zip(
             *optimized_path)
 
-        self.get_logger().info(
-            f'Returning response: {len(optimized_path)} Points')
+        logging.info(f'Returning response: {len(optimized_path)} Points')
 
         return response
 

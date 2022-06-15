@@ -1,3 +1,4 @@
+"""Setup model module."""
 from enum import Enum
 
 

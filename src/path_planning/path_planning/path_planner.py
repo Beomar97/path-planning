@@ -268,7 +268,7 @@ class PathPlanner(Node):
 
             # filter the planned path
             filtered_path = self.__handle_planned_path_filtering(planned_path,
-                                                                 self.travelled_path)
+                                                                 self.travelled_path[-PathPlanner.MAX_CONES:])
 
             if self.mock_current_position:
                 # set last midpoint as new current position

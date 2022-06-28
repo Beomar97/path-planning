@@ -255,15 +255,17 @@ class ConePublisher(Node):
                 self.__publish_cone(self.blue_cones[self.b_i])
                 self.b_i += 1
             else:
-                self.__publish_cone(self.yellow_cones[self.y_i])
-                self.y_i += 1
+                if self.y_i < len(self.yellow_cones):
+                    self.__publish_cone(self.yellow_cones[self.y_i])
+                    self.y_i += 1
         else:
             if self.y_i < len(self.yellow_cones):
                 self.__publish_cone(self.yellow_cones[self.y_i])
                 self.y_i += 1
             else:
-                self.__publish_cone(self.blue_cones[self.b_i])
-                self.b_i += 1
+                if self.b_i < len(self.blue_cones):
+                    self.__publish_cone(self.blue_cones[self.b_i])
+                    self.b_i += 1
 
     def __publish_cone(self, cone):
         """

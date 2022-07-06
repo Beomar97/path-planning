@@ -2,9 +2,10 @@
 import math
 from typing import List
 
+from scipy.spatial.distance import cdist
+
 from path_planning.model.coordinate import Coordinate
 from path_planning.model.refpoint import Refpoint
-from scipy.spatial.distance import cdist
 
 
 class OptimizationInputTransformer:

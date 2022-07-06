@@ -17,6 +17,8 @@ from path_planning.model.coordinate import Coordinate
 from path_planning.model.mode import Mode
 from path_planning.model.racetrajectory import RaceTrajectory
 from path_planning.model.setup import Setup
+from path_planning.planned_path_filter import PlannedPathFilter
+from path_planning.start_finish_detector import StartFinishDetector
 from path_planning.track_config import TrackConfig
 from path_planning.util.path_planning_helpers import get_distance
 
@@ -62,9 +64,7 @@ class PathPlanner(Node):
     big_orange_cones = []
     unknown_cones = []
     calculated_path = []
-    travelled_path = []
     optimized_path = []
-    start_finish_cones = []
 
     def __init__(self):
         """
@@ -114,6 +114,13 @@ class PathPlanner(Node):
         # initialize Planned Trajectory publisher
         self.planned_trajectory_publisher = self.create_publisher(
             PlannedTrajectory, 'planned_trajectory', 200)
+
+        # init start finish detector
+        self.start_finish_detector = StartFinishDetector(
+            self.current_position, self.track_config)
+
+        # init planned path filter
+        self.planned_path_filter = PlannedPathFilter(self.current_position)
 
         logging.info('-----------------------')
         logging.info('Path Planner initialized!')
@@ -201,8 +208,6 @@ class PathPlanner(Node):
                 self.track_config = TrackConfig.Default
 
         self.current_position = self.track_config.START_CURRENT_POSITION
-        self.travelled_path.append([self.track_config.START_CURRENT_POSITION.vehicle_position_x,
-                                   self.track_config.START_CURRENT_POSITION.vehicle_position_y])
 
         logging.info(
             f'Track Configuration loaded!\n\
@@ -233,12 +238,23 @@ class PathPlanner(Node):
         # add next cone to its corresponding list regarding it's color
         self.__add_to_received_cones(next_cone)
 
-        # handle start finish detection if a big orange cone is detected
-        if self.index >= 20 and next_cone.color == Cone.ORANGE_BIG:
-            self.__handle_start_finish_detection(next_cone)
-        if self.index % 20 == 0:
-            # enough cones need to be detected in the given range (last 20 cones)
-            self.start_finish_cones.clear()
+        # handle start finish detection
+        start_finish_detected = False
+        if self.setup == Setup.TRACK_DRIVE:
+            if self.index >= 20:
+                start_finish_detected = self.start_finish_detector.detect_by_starting_position(
+                    current_position=self.current_position)
+        else:
+            if self.index >= 20 and next_cone.color == Cone.ORANGE_BIG:
+                # handle start finish detection if a big orange cone is detected
+                start_finish_detected = self.start_finish_detector.detect_by_cones(index=self.index,
+                                                                                   current_position=self.current_position,
+                                                                                   next_cone=next_cone)
+        if start_finish_detected:
+            self.laps_completed += 1  # add counter laps completed
+            if self.mode == Mode.EXPLORATION:  # switch to optimization
+                self.__prepare_optimization_request()
+                self.future = self.optimization_client.call_async(self.req)
 
         if self.mode == Mode.EXPLORATION:
 
@@ -267,8 +283,7 @@ class PathPlanner(Node):
                 self.calculated_path.extend(planned_path)
 
             # filter the planned path
-            filtered_path = self.__handle_planned_path_filtering(planned_path,
-                                                                 self.travelled_path[-PathPlanner.MAX_CONES:])
+            filtered_path = self.planned_path_filter.filter_path(planned_path)
 
             if self.mock_current_position:
                 # set last midpoint as new current position
@@ -277,6 +292,13 @@ class PathPlanner(Node):
             if filtered_path:
                 # publish the filtered path
                 self.publish_planned_path(filtered_path)
+
+                if self.show_plot_exploration:
+                    plt.ion()
+                    filtered_path_x, filtered_path_y = zip(*filtered_path)
+                    plt.plot(filtered_path_x, filtered_path_y, 'o', c='green')
+                    plt.show()
+                    plt.pause(0.0001)
 
         else:
             if self.show_plot_exploration:
@@ -304,80 +326,6 @@ class PathPlanner(Node):
         else:
             self.unknown_cones.append(
                 [next_cone.location.x, next_cone.location.y])
-
-    def __handle_start_finish_detection(self, next_cone: Cone):
-        """
-        Handle the start finish line detection.
-
-        The received cone must be near enough the vehicle's current position,
-        if so, the cone will be saved as a valid 'start finish' cone.
-        If enough 'start finish' cones have been received in the last couple cones (e.g. 20),
-        check if at least a number of cones are in the threshold.
-
-        :param next_cone: The just received cone.
-        """
-        distance_to_cone = cdist([[self.current_position.vehicle_position_x, self.current_position.vehicle_position_y]],
-                                 [[next_cone.location.x, next_cone.location.y]])[0][0]
-
-        # check distance current position <-> receiving cone
-        if distance_to_cone < self.track_config.POSITION_DISTANCE_THRESHOLD:
-            # save as a valid start finish cone
-            self.start_finish_cones.append(
-                [next_cone.location.x, next_cone.location.y])
-
-            # check if enough valid start finish cones have been received
-            if len(self.start_finish_cones) >= self.track_config.CONES_THRESHOLD:
-                distances_to_start_finish_cones = cdist(
-                    [[next_cone.location.x, next_cone.location.y]], self.start_finish_cones)[0]
-
-                # if at least e.g. 2 satisfy the condition => sucessfully detected start finish line, switch to optimization
-                if sum(1 for distance in distances_to_start_finish_cones if distance < self.track_config.EDGE_DISTANCE_THRESHOLD) \
-                        >= PathPlanner.START_FINISH_CONES_NEEDED:
-
-                    self.laps_completed += 1  # add counter laps completed
-                    self.start_finish_cones.clear()
-
-                    if self.mode == Mode.EXPLORATION:  # switch to optimization
-                        self.__prepare_optimization_request()
-                        self.future = self.optimization_client.call_async(
-                            self.req)
-
-    def __handle_planned_path_filtering(self, planned_path: List[Coordinate], travelled_path: List[Coordinate]):
-        """
-        Handle the filtering of the planned path.
-
-        The received cone must be near enough the vehicle's current position,
-        if so, the cone will be saved as a valid 'start finish' cone.
-        If enough 'start finish' cones have been received in the last couple cones (e.g. 20),
-        check if at least a number of cones are in the threshold.
-
-        :param planned_path: The planned path calculated by the Exploration Algorithm.
-        :param travelled_path: Path points already published in the past.
-        :returns: The filtered path only containing path points not yet published.
-        """
-        filtered_path = []
-        for planned_point in planned_path:
-            no_overlap = True
-            for travelled_point in travelled_path:
-                dist_planned_point_to_travelled_point = get_distance(
-                    travelled_point, planned_point)
-                if dist_planned_point_to_travelled_point < 1:
-                    no_overlap = False
-
-            if no_overlap:
-                filtered_path.append(planned_point)
-
-        if filtered_path:
-            self.travelled_path.extend(filtered_path)
-
-            if self.show_plot_exploration:
-                plt.ion()
-                filtered_path_x, filtered_path_y = zip(*filtered_path)
-                plt.plot(filtered_path_x, filtered_path_y, 'o', c='green')
-                plt.show()
-                plt.pause(0.0001)
-
-        return filtered_path
 
     def __prepare_optimization_request(self):
         """

@@ -6,7 +6,7 @@ from interfaces.srv import OptimizePath
 from rclpy.node import Node
 
 from path_planning.algorithm.optimization.main_globaltraj import optimize_path
-from path_planning.util.optimization_input_transformer import \
+from path_planning.optimization_input_transformer import \
     OptimizationInputTransformer
 
 
@@ -42,7 +42,7 @@ class OptimizationService(Node):
 
     def __optimize_path_callback(self, request: OptimizePath, response: OptimizePath):
         """
-        Execute callback function when receiving the next cone.
+        Execute callback function when receiving the planned path by the Exploration Algorithm.
 
         :param request: The request containing the received cones and the reference line.
         :param response: The response model.

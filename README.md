@@ -164,15 +164,9 @@ ROS_Path_Planning/ # Workspace Root
 
 ## Architecture
 
-<img src="img/Path_Planning_ROS_Architecture.png" alt="Path Planning ROS Architecture" height="500px"/>
+<img src="img/Path_Planning_ROS_Architecture.png" alt="Path Planning ROS Architecture" width="800px"/>
 
-### Path Planner Node
-
-<img src="img/Path_Planning_Path_Planner.png" alt="Path Planning Path Planner Node" height="500px"/>
-
-### Optimization Service Node
-
-<img src="img/Path_Planning_Optimization_Service.png" alt="Path Planning Optimization Service Node" height="420px"/>
+<img src="img/Path_Planning_Path_Planner.png" alt="Path Planning Path Planner Node" width="400px"/> <img src="img/Path_Planning_Optimization_Service.png" alt="Path Planning Optimization Service Node" width="400px"/>
 
 ## Algorithms
 

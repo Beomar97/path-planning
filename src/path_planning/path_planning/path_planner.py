@@ -33,11 +33,8 @@ class PathPlanner(Node):
 
     # default parameters
     LAPS = 2
-    OPTIMIZATION_TYPE = "mincurv"
-    MINIMUM_TRACK_WIDTH = None
     SHOW_CALC_TIMES = False
     SHOW_PLOT_EXPLORATION = False
-    SHOW_PLOT_OPTIMIZATION = False
     MOCK_CURRENT_POSITION = True
     TRACK_NAME = "sim_tool"
 
@@ -137,18 +134,6 @@ class PathPlanner(Node):
         self.laps = self.get_parameter(
             'laps').get_parameter_value().integer_value
 
-        # optimization type ros parameter
-        self.declare_parameter('optimization_type',
-                               PathPlanner.OPTIMIZATION_TYPE)
-        self.optimization_type = self.get_parameter(
-            'optimization_type').get_parameter_value().string_value
-
-        # minimum track width ros parameter
-        self.declare_parameter('minimum_track_width',
-                               PathPlanner.MINIMUM_TRACK_WIDTH)
-        self.minimum_track_width = self.get_parameter(
-            'minimum_track_width').get_parameter_value().double_value
-
         # show plot exploration ros parameter
         self.declare_parameter('show_calc_times',
                                PathPlanner.SHOW_CALC_TIMES)
@@ -160,12 +145,6 @@ class PathPlanner(Node):
                                PathPlanner.SHOW_PLOT_EXPLORATION)
         self.show_plot_exploration = self.get_parameter(
             'show_plot_exploration').get_parameter_value().bool_value
-
-        # show plot optimization ros parameter
-        self.declare_parameter('show_plot_optimization',
-                               PathPlanner.SHOW_PLOT_OPTIMIZATION)
-        self.show_plot_optimization = self.get_parameter(
-            'show_plot_optimization').get_parameter_value().bool_value
 
         # mock current position ros parameter
         self.declare_parameter('mock_current_position',
@@ -334,8 +313,6 @@ class PathPlanner(Node):
         Prepare the request message for the Optimization Service 
         with the Optimize Path message format defined in OptimizePath.srv.
         """
-        self.req.optimization_type = self.optimization_type
-
         self.req.blue_cones_x, self.req.blue_cones_y = zip(*self.blue_cones)
         self.req.yellow_cones_x, self.req.yellow_cones_y = zip(
             *self.yellow_cones)
@@ -346,8 +323,6 @@ class PathPlanner(Node):
         self.req.refline_x, self.req.refline_y = zip(*self.calculated_path)
 
         self.req.num_of_laps = self.laps - self.laps_completed
-        self.req.minimum_track_width = self.minimum_track_width
-        self.req.show_plot = self.show_plot_optimization
 
     def publish_planned_path(self, planned_path: List[Coordinate]):
         """

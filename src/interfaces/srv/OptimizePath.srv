@@ -1,4 +1,3 @@
-string optimization_type
 float32[] blue_cones_x
 float32[] blue_cones_y
 float32[] yellow_cones_x
@@ -9,9 +8,7 @@ float32[] big_orange_cones_x
 float32[] big_orange_cones_y
 float32[] refline_x
 float32[] refline_y
-float32 minimum_track_width
 int64 num_of_laps
-bool show_plot
 ---
 float32[] optimized_path_s_m
 float32[] optimized_path_x_m

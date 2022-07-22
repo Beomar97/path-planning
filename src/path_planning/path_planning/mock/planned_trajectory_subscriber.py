@@ -38,10 +38,11 @@ class PlannedTrajectorySubscriber(Node):
         :param planned_trajectory: The receiving planned trajectory.
         """
         logging.info(
-            f'Received: i:{planned_trajectory.index} \
-                x:{planned_trajectory.target_x} \
-                y:{planned_trajectory.target_y} \
-                v:{planned_trajectory.target_velocity}')
+            f'Received Planned Trajectory:\n\
+                i: {planned_trajectory.index},\n\
+                x: {planned_trajectory.target_x},\n\
+                y: {planned_trajectory.target_y},\n\
+                v: {planned_trajectory.target_velocity}')
 
 
 def main(args=None):

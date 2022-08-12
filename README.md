@@ -4,7 +4,7 @@
 <br />
 
 <p align="center">
-  <a href="https://github.zhaw.ch/FSZHAW/ROS_Path_Planning">
+  <a href="https://github.com/Beomar97/path-planning">
     <img src="img/project-logo.png" alt="Logo" height="200">
   </a>
 
@@ -14,10 +14,10 @@
   <p align="center">
 		Path Planning package for the Autonomous System of Zurich UAS Racing.
     <br />
-    <a href="https://github.zhaw.ch/FSZHAW/BA_Path_Planning"><strong>Explore the thesis »</strong></a>
+    <a href="https://github.com/Beomar97/path-planning-docs"><strong>Explore the thesis »</strong></a>
     <br />
     <br />
-    <a href="https://github.zhaw.ch/FSZHAW/ROS_Path_Planning">View Presentation</a>
+    <a href="https://github.com/Beomar97/path-planning">View Presentation</a>
   </p>
 </p>
 
@@ -44,7 +44,7 @@ The first algorithm, the so-called “Exploration Algorithm”, calculates the m
 
 The corresponding thesis can be found under:
 
-https://github.zhaw.ch/FSZHAW/BA_Path_Planning
+https://github.com/Beomar97/path-planning-docs
 
 <img src="img/Result_SmallTrack_final.png" alt="Exploration Algorithm on the ''Rand'' track." height="250px"/> <img src="img/Results_Optimization_Small_Track_Laps_2.png" alt="Optimization Algorithm on the ''Rand'' track." height="250px"/>
 

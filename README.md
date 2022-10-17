@@ -108,15 +108,23 @@ ROS_Path_Planning/ # Workspace Root
 
    `setup.cfg`: should already be ok
 
-2. Initialize submodules (fszhaw_msgs)
+2. Initialize submodules (fszhaw_msgs) (Currently only available in the ZHAW network)
 
    `git submodule update --init`
+   
+3. Install Python 3 dependencies necessary for ROS 2
 
-3. Install dependencies (from workspace root `ROS_Path_Planning`)
+   `sudo apt install python3-pip python3-rosdep2 python3-colcon-common-extensions python3-pip`
+   
+4. Initialize rosdep installation
+
+   `rosdep update`
+
+5. Install dependencies (from workspace root `ROS_Path_Planning`)
 
    `rosdep install -i --from-path src --rosdistro foxy -y`
 
-4. Build packages (from workspace root `ROS_Path_Planning`)
+6. Build packages (from workspace root `ROS_Path_Planning`)
 
    Optional: If colcon command is still missing
 
@@ -128,15 +136,15 @@ ROS_Path_Planning/ # Workspace Root
 
    `colcon build --packages-select <package_name>`
 
-5. Source ROS distribution
+7. Source ROS distribution
 
    `source /setup/ros/foxy/setup.bash`
 
-6. Source setup files
+8. Source setup files
 
    `. install/setup.bash`
 
-7. Run package
+9. Run package
 
    `ros2 launch launch/path_planning_launch.py`
 

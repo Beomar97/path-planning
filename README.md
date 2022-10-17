@@ -123,8 +123,12 @@ ROS_Path_Planning/ # Workspace Root
 5. Install dependencies (from workspace root `ROS_Path_Planning`)
 
    `rosdep install -i --from-path src --rosdistro foxy -y`
+   
+6. Install dependencies not available via rosdep (e.g. trajectory-planning-helpers)
 
-6. Build packages (from workspace root `ROS_Path_Planning`)
+   `pip3 install trajectory_planning_helpers==0.76`
+
+7. Build packages (from workspace root `ROS_Path_Planning`)
 
    Optional: If colcon command is still missing
 
@@ -136,15 +140,15 @@ ROS_Path_Planning/ # Workspace Root
 
    `colcon build --packages-select <package_name>`
 
-7. Source ROS distribution
+8. Source ROS distribution
 
    `source /setup/ros/foxy/setup.bash`
 
-8. Source setup files
+9. Source setup files
 
    `. install/setup.bash`
 
-9. Run package
+10. Run package
 
    `ros2 launch launch/path_planning_launch.py`
 
